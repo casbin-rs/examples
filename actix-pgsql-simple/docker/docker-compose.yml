@@ -1,0 +1,23 @@
+version: "3.7"
+
+services:
+  casbin-actix-pgsql-app:
+    container_name: casbin-actix-pgsql-app
+    build: .
+    ports:
+      - 127.0.0.1:1080:1080
+    volumes:
+      - ..:/opt/app
+    links:
+      - casbin-actix-pgsql-db
+    depends_on:
+      - casbin-actix-pgsql-db
+
+  casbin-actix-pgsql-db:
+    container_name: casbin-actix-pgsql-db
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: "postgres"
+    # To have persistent data, enable this
+    # volumes:
+      # - ../data/pg:/var/lib/postgresql/data
