@@ -1,4 +1,6 @@
 [workspace]
 members = [
     "actix_fileadapter_rbac",
+    "actix-pgsql-simple",
+    "ntex-fileadapter-acl",
 ]
