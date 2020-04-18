@@ -1,0 +1,12 @@
+[package]
+name = "ntex-fileadapter-acl-example"
+version = "0.1.0"
+authors = ["Chojan Shang <psiace@outlook.com>"]
+edition = "2018"
+workspace = ".."
+
+[dependencies]
+ntex = "0.1.11"
+casbin = "0.6.0"
+dotenv = "0.15"
+loge = {version = "0.4", default-features = false, features = ["colored", "chrono"]}
