@@ -22,7 +22,3 @@ cargo run (or ``cargo watch -x run``)
 ```
 
 In this example, you can get the the successful result at `http://localhost:8080/success` (accessible) and the failed result at `http://localhost:8080/fail` (inaccessible, `ERR_EMPTY_RESPONSE`).
-
-## Credit
-
-- Original location of this demo: <https://github.com/PsiACE/actix-casbin-example>
