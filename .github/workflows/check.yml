@@ -1,0 +1,55 @@
+name: Check Code
+
+on:
+  push:
+    branches:
+      - '*'
+      - '!staging.tmp'
+    tags:
+      - '*'
+
+jobs:
+  test:
+    name: "Test"
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: "Checkout Repository"
+      uses: actions/checkout@v1
+
+    - name: "Print Rust Version"
+      run: |
+        rustc -Vv
+        cargo -Vv
+    - name: "Build for Linux"
+      run: |
+        cargo check --all
+        cargo test --all --no-fail-fast
+
+  check_formatting:
+    name: "Check Formatting"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: "Use the latest Rust stable with rustfmt"
+      uses: actions-rs/toolchain@v1
+      with:
+          toolchain: stable
+          profile: minimal
+          components: rustfmt
+          override: true
+    - run: cargo fmt --all -- --check
+
+  check_clippy:
+    name: "Check Clippy"
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: "Use the latest Rust stable with clippy"
+      uses: actions-rs/toolchain@v1
+      with:
+          toolchain: stable
+          profile: minimal
+          components: clippy
+          override: true
+    - run: cargo clippy -- -D warnings
