@@ -16,7 +16,11 @@ async fn main() -> std::io::Result<()> {
 
     let mut enforcer = get_enforcer().await;
     enforcer
-        .add_policy(vec!["casbin".to_string(), "index".to_string(), "read".to_string()])
+        .add_policy(vec![
+            "casbin".to_string(),
+            "index".to_string(),
+            "read".to_string(),
+        ])
         .await
         .unwrap();
 
@@ -59,7 +63,9 @@ async fn grant(sub: &str, obj: &str, act: &str) -> Result<()> {
 }
 
 async fn get_enforcer() -> Enforcer {
-    let m = DefaultModel::from_file("model/rbac_model.conf").await.unwrap();
+    let m = DefaultModel::from_file("model/rbac_model.conf")
+        .await
+        .unwrap();
     let a = DieselAdapter::new().unwrap();
     Enforcer::new(m, a).await.unwrap()
 }
