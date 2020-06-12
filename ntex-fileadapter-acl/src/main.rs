@@ -9,7 +9,7 @@ async fn auth(
     enforcer: web::types::Data<RwLock<Enforcer>>,
     req: HttpRequest,
 ) -> HttpResponse {
-    let mut e = enforcer.write().unwrap();
+    let e = enforcer.write().unwrap();
     println!("{:?}", req);
     let name = req.match_info().get("name").unwrap_or("cat");
     let action = req.match_info().get("action").unwrap_or("meow");

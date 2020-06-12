@@ -4,14 +4,14 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
-casbin = "0.3.0"
-diesel-adapter = { version = "0.3.0", features = ["postgres"] }
-async-std = { version = "1.5.0", features = ["attributes"] }
+casbin = "0.9"
+diesel-adapter = { version = "0.7", features = ["postgres"] }
+async-std = { version = "1.6", features = ["attributes"] }
 
 diesel = { version = "1.4", features = ["postgres", "serde_json", "r2d2"] }
 
 actix-web = { version = "2.0" }
-actix-rt = "1.0"
+actix-rt = "1.1"
 serde = "1.0"
 serde_derive = "1.0"
 
@@ -19,4 +19,3 @@ dotenv = "0.15"
 env_logger = "0.7"
 futures = "0.3"
 log = "0.4"
-

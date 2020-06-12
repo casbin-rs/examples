@@ -1,7 +1,6 @@
 use actix_web::{middleware, web, App, HttpResponse, HttpServer, Responder};
-use casbin::prelude::*;
-use casbin::DefaultModel;
-use diesel_adapter::{ConnOptions, DieselAdapter};
+use diesel_adapter::casbin::prelude::*;
+use diesel_adapter::DieselAdapter;
 use serde::Deserialize;
 use std::env;
 
@@ -17,7 +16,11 @@ async fn main() -> std::io::Result<()> {
 
     let mut enforcer = get_enforcer().await;
     enforcer
-        .add_policy(vec!["casbin", "index", "read"])
+        .add_policy(vec![
+            "casbin".to_string(),
+            "index".to_string(),
+            "read".to_string(),
+        ])
         .await
         .unwrap();
 
@@ -45,40 +48,24 @@ async fn index(me: web::Query<Visitor>) -> impl Responder {
     HttpResponse::Ok().body("OK")
 }
 
-async fn grant(sub: &str, obj: &str, act: &str) -> Result<(), ()> {
-    let enforcer = get_enforcer().await;
+async fn grant(sub: &str, obj: &str, act: &str) -> Result<()> {
+    let e = get_enforcer().await;
 
-    if let Ok(authorized) = enforcer.enforce(vec![sub, obj, act]) {
+    if let Ok(authorized) = e.enforce(&[sub, obj, act]).await {
         if authorized {
             Ok(())
         } else {
-            Err(())
+            Err(()).unwrap()
         }
     } else {
-        Err(())
+        Err(()).unwrap()
     }
 }
 
 async fn get_enforcer() -> Enforcer {
-    let model = DefaultModel::from_file("model/rbac_model.conf")
+    let m = DefaultModel::from_file("model/rbac_model.conf")
         .await
         .unwrap();
-
-    let db_name = env::var("DB_NAME").expect("DB_NAME is not set");
-    let username = env::var("DB_USER").expect("DB_USER is not set");
-    let password = env::var("DB_PASS").expect("DB_PASS is not set");
-    let host = env::var("DB_HOST").expect("DB_HOST is not set");
-    let port = env::var("DB_PORT").expect("DB_PORT is not set");
-
-    let mut conn_opts = ConnOptions::default();
-    conn_opts
-        .set_database(&db_name)
-        .set_hostname(&host)
-        .set_port(port.parse::<u16>().unwrap())
-        .set_auth(&username, &password);
-
-    let adapter = DieselAdapter::new(conn_opts).unwrap();
-    Enforcer::new(Box::new(model), Box::new(adapter))
-        .await
-        .unwrap()
+    let a = DieselAdapter::new().unwrap();
+    Enforcer::new(m, a).await.unwrap()
 }
