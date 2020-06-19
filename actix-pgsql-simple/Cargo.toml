@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
-casbin = "0.9"
+casbin = "1.0"
 diesel-adapter = { version = "0.7", features = ["postgres"] }
 async-std = { version = "1.6", features = ["attributes"] }
 
