@@ -7,6 +7,6 @@ workspace = ".."
 
 [dependencies]
 ntex = "0.1"
-casbin = "0.9"
+casbin = "1.1"
 dotenv = "0.15"
 loge = {version = "0.4", default-features = false, features = ["colored", "chrono"]}
