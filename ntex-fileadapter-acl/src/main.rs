@@ -14,7 +14,7 @@ async fn auth(
     let name = req.match_info().get("name").unwrap_or("cat");
     let action = req.match_info().get("action").unwrap_or("meow");
 
-    if let Ok(authorized) = e.enforce(&[name, "data", action]).await {
+    if let Ok(authorized) = e.enforce(&[name, "data", action]) {
         if authorized {
             HttpResponse::Ok().body(format!("{} can {} data", &name, &action))
         } else {

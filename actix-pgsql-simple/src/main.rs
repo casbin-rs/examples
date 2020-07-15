@@ -51,7 +51,7 @@ async fn index(me: web::Query<Visitor>) -> impl Responder {
 async fn grant(sub: &str, obj: &str, act: &str) -> Result<()> {
     let e = get_enforcer().await;
 
-    if let Ok(authorized) = e.enforce(&[sub, obj, act]).await {
+    if let Ok(authorized) = e.enforce(&[sub, obj, act]) {
         if authorized {
             Ok(())
         } else {
