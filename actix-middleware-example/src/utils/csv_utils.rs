@@ -54,7 +54,7 @@ fn is_hidden(entry: &DirEntry) -> bool {
     entry
         .file_name()
         .to_str()
-        .map(|s| s.starts_with("."))
+        .map(|s| s.starts_with('.'))
         .unwrap_or(false)
 }
 
@@ -68,7 +68,7 @@ fn is_csv(entry: &DirEntry) -> bool {
 
 fn is_valid_grouping_policy(record: &StringRecord) -> bool {
     if let Some(ptype) = record.get(0) {
-        return ptype.starts_with("g") && record.len() >= 3;
+        return ptype.starts_with('g') && record.len() >= 3;
     }
 
     false
@@ -76,7 +76,7 @@ fn is_valid_grouping_policy(record: &StringRecord) -> bool {
 
 fn is_valid_policy(record: &StringRecord) -> bool {
     if let Some(ptype) = record.get(0) {
-        return ptype.starts_with("p") && record.len() >= 4;
+        return ptype.starts_with('p') && record.len() >= 4;
     }
 
     false

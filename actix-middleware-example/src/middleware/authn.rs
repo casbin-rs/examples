@@ -1,3 +1,4 @@
+#![allow(clippy::type_complexity)]
 use crate::{
     config::db::Pool, constants, models::response::ResponseBody, utils::token_utils,
 };

@@ -1,5 +1,6 @@
 // Messages
 pub const MESSAGE_OK: &str = "ok";
+pub const MESSAGE_CAN_NOT_FIND_USER: &str = "Can not find user, user not exist";
 pub const MESSAGE_CAN_NOT_FETCH_DATA: &str = "Can not fetch data";
 pub const MESSAGE_CAN_NOT_INSERT_DATA: &str = "Can not insert data";
 //pub const MESSAGE_CAN_NOT_UPDATE_DATA: &str = "Can not update data";
@@ -30,8 +31,5 @@ pub const AUTHORIZATION: &str = "Authorization";
 pub const EMPTY: &str = "";
 
 // ignore routes
-pub const IGNORE_ROUTES: [&str; 3] = [
-    "/api/public/user/signup",
-    "/api/public/user/login",
-    "/api/public/posts",
-];
+pub const IGNORE_ROUTES: [&str; 3] =
+    ["/api/auth/signup", "/api/auth/login", "/api/posts"];

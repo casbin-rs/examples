@@ -1,15 +1,13 @@
+#![allow(clippy::if_same_then_else)]
 use crate::{
     config::db::Pool,
     constants,
     errors::ServiceError,
     models::user::{DeleteUser, LoginForm, NewUser, User},
     models::user_token::UserToken,
-    utils::token_utils,
 };
-use actix_web::{
-    http::{header::HeaderValue, StatusCode},
-    web,
-};
+use actix_casbin_auth::CasbinVals;
+use actix_web::{http::StatusCode, web, HttpRequest};
 
 #[derive(Serialize, Deserialize)]
 pub struct TokenBodyResponse {
@@ -50,60 +48,56 @@ pub fn login(
     }
 }
 
-pub fn logout(
-    authen_header: &HeaderValue,
-    pool: &web::Data<Pool>,
-) -> Result<(), ServiceError> {
-    if let Ok(authen_str) = authen_header.to_str() {
-        if authen_str.starts_with("bearer") {
-            let token = authen_str[6..authen_str.len()].trim();
-            if let Ok(token_data) = token_utils::decode_token(token.to_string()) {
-                if let Ok(username) = token_utils::verify_token(&token_data, pool) {
-                    if let Ok(user) =
-                        User::find_user_by_username(&username, &pool.get().unwrap())
-                    {
-                        User::logout(user.id, &pool.get().unwrap());
-                        return Ok(());
-                    }
-                }
-            }
-        }
+pub fn logout(req: HttpRequest, pool: &web::Data<Pool>) -> Result<(), ServiceError> {
+    fn make_error() -> ServiceError {
+        ServiceError::new(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            constants::MESSAGE_CAN_NOT_FIND_USER.to_string(),
+        )
     }
-
-    Err(ServiceError::new(
-        StatusCode::INTERNAL_SERVER_ERROR,
-        constants::MESSAGE_PROCESS_TOKEN_ERROR.to_string(),
-    ))
+    let option_vals = req.extensions().get::<CasbinVals>().map(|x| x.to_owned());
+    let vals = match option_vals {
+        Some(value) => value,
+        None => {
+            return Err(ServiceError::new(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                constants::MESSAGE_TOKEN_MISSING.to_string(),
+            ))
+        }
+    };
+    let username = &vals.subject;
+    let user = User::find_user_by_username(&username, &pool.get().unwrap())
+        .map_err(|_| make_error())?;
+    User::logout(user.id, &pool.get().unwrap());
+    Ok(())
 }
 
 pub fn delete_admin(
-    authen_header: &HeaderValue,
+    req: HttpRequest,
     delete_user_id: i32,
     delete_user: DeleteUser,
     pool: &web::Data<Pool>,
-    ext:
 ) -> Result<(), ServiceError> {
     fn make_error() -> ServiceError {
         ServiceError::new(
             StatusCode::INTERNAL_SERVER_ERROR,
-            constants::MESSAGE_PROCESS_TOKEN_ERROR.to_string(),
+            constants::MESSAGE_CAN_NOT_FIND_USER.to_string(),
         )
     }
-
-    let authen_str = authen_header.to_str().map_err(|_| make_error())?;
-    if authen_str.starts_with("bearer") != true {
-        return Err(make_error());
-    }
-    let token = authen_str[6..authen_str.len()].trim();
-    let token_data =
-        token_utils::decode_token(token.to_string()).map_err(|_| make_error())?;
-
-    let username =
-        token_utils::verify_token(&token_data, pool).map_err(|_| make_error())?;
+    let option_vals = req.extensions().get::<CasbinVals>().map(|x| x.to_owned());
+    let vals = match option_vals {
+        Some(value) => value,
+        None => {
+            return Err(ServiceError::new(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                constants::MESSAGE_TOKEN_MISSING.to_string(),
+            ))
+        }
+    };
+    let username = &vals.subject;
     let user = User::find_user_by_username(&username, &pool.get().unwrap())
         .map_err(|_| make_error())?;
-    let delete_user_role = User::get_user_role(delete_user_id, &pool.get().unwrap())
-        .map_err(|_| make_error())?;
+    let delete_user_role = user.role;
 
     if user.role == 0 && delete_user_id != user.id {
         match User::delete(delete_user_id, delete_user, &pool.get().unwrap()) {
@@ -134,30 +128,27 @@ pub fn delete_admin(
 }
 
 pub fn delete_self(
-    authen_header: &HeaderValue,
+    req: HttpRequest,
     delete_user: DeleteUser,
     pool: &web::Data<Pool>,
 ) -> Result<(), ServiceError> {
     fn make_error() -> ServiceError {
         ServiceError::new(
             StatusCode::INTERNAL_SERVER_ERROR,
-            constants::MESSAGE_PROCESS_TOKEN_ERROR.to_string(),
+            constants::MESSAGE_CAN_NOT_FIND_USER.to_string(),
         )
     }
-
-    let authen_str = authen_header.to_str().map_err(|_| make_error())?;
-
-    if authen_str.starts_with("bearer") == false {
-        return Err(make_error());
-    }
-
-    let token = authen_str[6..authen_str.len()].trim();
-
-    let token_data =
-        token_utils::decode_token(token.to_string()).map_err(|_| make_error())?;
-
-    let username =
-        token_utils::verify_token(&token_data, pool).map_err(|_| make_error())?;
+    let option_vals = req.extensions().get::<CasbinVals>().map(|x| x.to_owned());
+    let vals = match option_vals {
+        Some(value) => value,
+        None => {
+            return Err(ServiceError::new(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                constants::MESSAGE_TOKEN_MISSING.to_string(),
+            ))
+        }
+    };
+    let username = &vals.subject;
     let user = User::find_user_by_username(&username, &pool.get().unwrap())
         .map_err(|_| make_error())?;
 

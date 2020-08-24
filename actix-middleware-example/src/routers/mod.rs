@@ -1,4 +1,3 @@
-#[warn(unused_parens)]
 use actix_web::web;
 
 use crate::api::*;
@@ -17,9 +16,7 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
             .service(
                 web::scope("/user")
                     .wrap(crate::middleware::authn::Authentication)
-                    .service(
-                        web::resource("logout").route((web::post().to(user::logout))),
-                    )
+                    .service(web::resource("logout").route(web::post().to(user::logout)))
                     .service(
                         web::resource("").route(web::delete().to(user::delete_self)),
                     ),

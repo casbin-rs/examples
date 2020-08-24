@@ -53,26 +53,19 @@ pub async fn delete(
     req: HttpRequest,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse> {
-    if let Some(authen_header) = req.headers().get(constants::AUTHORIZATION) {
-        let delete_post = DeletePost {
-            is_deleted: true,
-            deleted_at: Some(NaiveDateTime::from_timestamp(Utc::now().timestamp(), 0)),
-        };
-        match post_service::delete(
-            id.into_inner().parse::<i32>().unwrap(),
-            authen_header,
-            delete_post,
-            &pool,
-        ) {
-            Ok(()) => Ok(HttpResponse::Ok()
-                .json(ResponseBody::new(constants::MESSAGE_OK, constants::EMPTY))),
-            Err(err) => Ok(err.response()),
-        }
-    } else {
-        Ok(HttpResponse::BadRequest().json(ResponseBody::new(
-            constants::MESSAGE_TOKEN_MISSING,
-            constants::EMPTY,
-        )))
+    let delete_post = DeletePost {
+        is_deleted: true,
+        deleted_at: Some(NaiveDateTime::from_timestamp(Utc::now().timestamp(), 0)),
+    };
+    match post_service::delete(
+        id.into_inner().parse::<i32>().unwrap(),
+        req,
+        delete_post,
+        &pool,
+    ) {
+        Ok(()) => Ok(HttpResponse::Ok()
+            .json(ResponseBody::new(constants::MESSAGE_OK, constants::EMPTY))),
+        Err(err) => Ok(err.response()),
     }
 }
 

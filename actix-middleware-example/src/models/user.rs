@@ -97,6 +97,7 @@ impl User {
 
     pub fn login(login: LoginForm, conn: &Connection) -> Option<LoginInfo> {
         if let Ok(user_to_verify) = users
+            .filter(is_deleted.eq(false))
             .filter(username.eq(&login.username_or_email))
             .or_filter(email.eq(&login.username_or_email))
             .get_result::<User>(conn)
@@ -132,12 +133,12 @@ impl User {
         Uuid::new_v4().to_simple().to_string()
     }
 
-    pub fn get_user_role(
-        i: i32,
-        conn: &Connection,
-    ) -> Result<i32, diesel::result::Error> {
-        users.find(i).get_result::<User>(conn).map(|u| u.role)
-    }
+    // pub fn get_user_role(
+    //     i: i32,
+    //     conn: &Connection,
+    // ) -> Result<i32, diesel::result::Error> {
+    //     users.find(i).get_result::<User>(conn).map(|u| u.role)
+    // }
 
     pub fn is_valid_login_session(user_token: &UserToken, conn: &Connection) -> bool {
         users

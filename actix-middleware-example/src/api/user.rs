@@ -8,8 +8,7 @@ use crate::{
     },
     services::account_service,
 };
-use actix_web::dev::ServiceRequest;
-use actix_web::{web, HttpMessage, HttpRequest, HttpResponse, Result};
+use actix_web::{web, HttpRequest, HttpResponse, Result};
 use chrono::{NaiveDateTime, Utc};
 
 //#[post("/auth/login")]
@@ -43,22 +42,15 @@ pub async fn signup(
 
 //#[post("/user/logout")]
 pub async fn logout(req: HttpRequest, pool: web::Data<Pool>) -> Result<HttpResponse> {
-    if let Some(authen_header) = req.headers().get(constants::AUTHORIZATION) {
-        match account_service::logout(authen_header, &pool) {
-            Ok(_) => Ok(HttpResponse::Ok().json(ResponseBody::new(
-                constants::MESSAGE_LOGOUT_SUCCESS,
-                constants::EMPTY,
-            ))),
-            Err(_) => Ok(HttpResponse::InternalServerError().json(ResponseBody::new(
-                constants::MESSAGE_LOGOUT_FAILED,
-                constants::EMPTY,
-            ))),
-        }
-    } else {
-        Ok(HttpResponse::BadRequest().json(ResponseBody::new(
-            constants::MESSAGE_TOKEN_MISSING,
+    match account_service::logout(req, &pool) {
+        Ok(_) => Ok(HttpResponse::Ok().json(ResponseBody::new(
+            constants::MESSAGE_LOGOUT_SUCCESS,
             constants::EMPTY,
-        )))
+        ))),
+        Err(_) => Ok(HttpResponse::InternalServerError().json(ResponseBody::new(
+            constants::MESSAGE_LOGOUT_FAILED,
+            constants::EMPTY,
+        ))),
     }
 }
 
@@ -68,28 +60,21 @@ pub async fn delete_user(
     user_id: web::Path<String>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse> {
-    if let Some(authen_header) = req.headers().get(constants::AUTHORIZATION) {
-        let delete_user = DeleteUser {
-            is_deleted: true,
-            deleted_at: Some(NaiveDateTime::from_timestamp(Utc::now().timestamp(), 0)),
-        };
-        match account_service::delete_admin(
-            authen_header,
-            user_id.into_inner().parse::<i32>().unwrap(),
-            delete_user,
-            &pool,
-        ) {
-            Ok(_) => Ok(HttpResponse::Ok().json(ResponseBody::new(
-                constants::MESSAGE_DELETE_USER_SUCCESS,
-                constants::EMPTY,
-            ))),
-            Err(err) => Ok(err.response()),
-        }
-    } else {
-        Ok(HttpResponse::BadRequest().json(ResponseBody::new(
-            constants::MESSAGE_TOKEN_MISSING,
+    let delete_user = DeleteUser {
+        is_deleted: true,
+        deleted_at: Some(NaiveDateTime::from_timestamp(Utc::now().timestamp(), 0)),
+    };
+    match account_service::delete_admin(
+        req,
+        user_id.into_inner().parse::<i32>().unwrap(),
+        delete_user,
+        &pool,
+    ) {
+        Ok(_) => Ok(HttpResponse::Ok().json(ResponseBody::new(
+            constants::MESSAGE_DELETE_USER_SUCCESS,
             constants::EMPTY,
-        )))
+        ))),
+        Err(err) => Ok(err.response()),
     }
 }
 
@@ -97,25 +82,16 @@ pub async fn delete_user(
 pub async fn delete_self(
     req: HttpRequest,
     pool: web::Data<Pool>,
-    ext: ServiceRequest,
 ) -> Result<HttpResponse> {
-    let extension = ext.extensions().get().unwrap();
-    if let Some(authen_header) = req.headers().get(constants::AUTHORIZATION) {
-        let delete_user_dto = DeleteUser {
-            is_deleted: true,
-            deleted_at: Some(NaiveDateTime::from_timestamp(Utc::now().timestamp(), 0)),
-        };
-        match account_service::delete_self(authen_header, delete_user_dto, &pool) {
-            Ok(_) => Ok(HttpResponse::Ok().json(ResponseBody::new(
-                constants::MESSAGE_DELETE_USER_SUCCESS,
-                constants::EMPTY,
-            ))),
-            Err(err) => Ok(err.response()),
-        }
-    } else {
-        Ok(HttpResponse::BadRequest().json(ResponseBody::new(
-            constants::MESSAGE_TOKEN_MISSING,
+    let delete_user_dto = DeleteUser {
+        is_deleted: true,
+        deleted_at: Some(NaiveDateTime::from_timestamp(Utc::now().timestamp(), 0)),
+    };
+    match account_service::delete_self(req, delete_user_dto, &pool) {
+        Ok(_) => Ok(HttpResponse::Ok().json(ResponseBody::new(
+            constants::MESSAGE_DELETE_USER_SUCCESS,
             constants::EMPTY,
-        )))
+        ))),
+        Err(err) => Ok(err.response()),
     }
 }
