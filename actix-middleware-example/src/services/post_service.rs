@@ -8,8 +8,8 @@ use crate::{
 use actix_casbin_auth::CasbinVals;
 use actix_web::{http::StatusCode, web, HttpRequest};
 
-pub fn find_all(pool: &web::Data<Pool>) -> Result<Vec<Post>, ServiceError> {
-    match Post::find_all(&pool.get().unwrap()) {
+pub fn find_all_public(pool: &web::Data<Pool>) -> Result<Vec<Post>, ServiceError> {
+    match Post::find_all(false, &pool.get().unwrap()) {
         Ok(post) => Ok(post),
         Err(_) => Err(ServiceError::new(
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -18,8 +18,71 @@ pub fn find_all(pool: &web::Data<Pool>) -> Result<Vec<Post>, ServiceError> {
     }
 }
 
-pub fn find_by_id(id: i32, pool: &web::Data<Pool>) -> Result<Post, ServiceError> {
-    match Post::find_by_id(id, &pool.get().unwrap()) {
+pub fn find_all(
+    req: HttpRequest,
+    pool: &web::Data<Pool>,
+) -> Result<Vec<Post>, ServiceError> {
+    fn make_error() -> ServiceError {
+        ServiceError::new(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            constants::MESSAGE_CAN_NOT_FIND_USER.to_string(),
+        )
+    }
+    let option_vals = req.extensions().get::<CasbinVals>().map(|x| x.to_owned());
+    let vals = match option_vals {
+        Some(value) => value,
+        None => {
+            return Err(ServiceError::new(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                constants::MESSAGE_TOKEN_MISSING.to_string(),
+            ))
+        }
+    };
+    let username = &vals.subject;
+    let user = User::find_user_by_username(&username, &pool.get().unwrap())
+        .map_err(|_| make_error())?;
+    let mut is_admin = false;
+    if user.role == 0 || user.role == 1 {
+        is_admin = true;
+    };
+    match Post::find_all(is_admin, &pool.get().unwrap()) {
+        Ok(post) => Ok(post),
+        Err(_) => Err(ServiceError::new(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            constants::MESSAGE_CAN_NOT_FETCH_DATA.to_string(),
+        )),
+    }
+}
+
+pub fn find_by_id(
+    req: HttpRequest,
+    id: i32,
+    pool: &web::Data<Pool>,
+) -> Result<Post, ServiceError> {
+    fn make_error() -> ServiceError {
+        ServiceError::new(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            constants::MESSAGE_CAN_NOT_FIND_USER.to_string(),
+        )
+    }
+    let option_vals = req.extensions().get::<CasbinVals>().map(|x| x.to_owned());
+    let vals = match option_vals {
+        Some(value) => value,
+        None => {
+            return Err(ServiceError::new(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                constants::MESSAGE_TOKEN_MISSING.to_string(),
+            ))
+        }
+    };
+    let username = &vals.subject;
+    let user = User::find_user_by_username(&username, &pool.get().unwrap())
+        .map_err(|_| make_error())?;
+    let mut is_admin = false;
+    if user.role == 0 || user.role == 1 {
+        is_admin = true;
+    };
+    match Post::find_by_id(is_admin, id, &pool.get().unwrap()) {
         Ok(post) => Ok(post),
         Err(_) => Err(ServiceError::new(
             StatusCode::NOT_FOUND,
@@ -64,7 +127,7 @@ pub fn delete(
     let user = User::find_user_by_username(&username, &pool.get().unwrap())
         .map_err(|_| make_error())?;
     if user.role == 0 || user.role == 1 {
-        match Post::find_by_id(id, &pool.get().unwrap()) {
+        match Post::find_by_id(true, id, &pool.get().unwrap()) {
             Ok(_) => match Post::delete(id, delete_post, &pool.get().unwrap()) {
                 Ok(_) => return Ok(()),
                 Err(_) => {

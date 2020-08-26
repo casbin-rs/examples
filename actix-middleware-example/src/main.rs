@@ -13,15 +13,15 @@ extern crate serde_json;
 
 use actix_web::{App, HttpServer};
 
-// use crate::utils::csv_utils::load_csv;
-// use actix_casbin::casbin::{CachedEnforcer, DefaultModel, FileAdapter};
-// use actix_casbin::{CasbinActor, CasbinCmd, CasbinResult};
-// use actix_casbin_auth::CasbinService;
-// use diesel_adapter::DieselAdapter;
-// use std::path::Path;
+use crate::utils::csv_utils::{load_csv, walk_csv};
 use actix_casbin::casbin::Result;
+use actix_casbin::casbin::{CachedEnforcer, DefaultModel};
+use actix_casbin::{CasbinActor, CasbinCmd};
+use actix_casbin_auth::casbin::MgmtApi;
+use actix_casbin_auth::CasbinService;
 use actix_cors::Cors;
 use actix_web::middleware::NormalizePath;
+use diesel_adapter::DieselAdapter;
 
 mod api;
 mod config;
@@ -43,29 +43,49 @@ async fn main() -> Result<()> {
 
     let pool = config::db::migrate_and_config_db(&database_url);
 
-    // let model = DefaultModel::from_file("casbin.conf").await?;
-    // let adapter = DieselAdapter::new()?;
-    //
-    // let addr = CasbinActor::<CachedEnforcer>::new(model, adapter).await?;
-    // let share_enforcer = addr.get_enforcer().await;
-    // let casbin_middleware = CasbinService::set_enforcer(share_enforcer).await;
-    //
-    // let csv_path = vec![Path::new("preset_policy.csv")];
-    // let preset_rules = load_csv(csv_path);
-    // let add_policies = addr
-    //     .send(CasbinCmd::AddPolicies(
-    //         preset_rules.iter().map(|s| (*s).to_string()).collect(),
-    //     ))
-    //     .await;
-    // let result_add_policies = match add_policies {
-    //     Ok(Ok(CasbinResult::AddPolicies(result))) => result,
-    //     _ => panic!("Actor Error"),
-    // };
+    let model = DefaultModel::from_file("casbin.conf").await?;
+    let adapter = DieselAdapter::new()?;
+    let mut casbin_middleware = CasbinService::new(model, adapter).await;
+    casbin_middleware.write().await;
+
+    let share_enforcer = casbin_middleware.get_enforcer().await;
+    let clone_enforcer = share_enforcer.clone();
+    let casbin_actor =
+        CasbinActor::<CachedEnforcer>::set_enforcer(share_enforcer).await?;
+
+    let preset_rules = load_csv(walk_csv("."));
+    for mut policy in preset_rules {
+        let ptype = policy.remove(0);
+        if ptype.starts_with('p') {
+            // match casbin_actor.send(CasbinCmd::AddPolicy(policy)).await {
+            //     Ok(_) => info!("p policies has been added in database"),
+            //     Err(err) => debug!("{}", err),
+            //}
+            clone_enforcer.write().await.add_policy(policy).await;
+            continue;
+        } else if ptype.starts_with("g") {
+            // match casbin_actor
+            //     .send(CasbinCmd::AddNamedGroupingPolicy(ptype.to_string(), policy))
+            //     .await
+            // {
+            //     Ok(_) => info!("g policies has been added in database"),
+            //     Err(err) => debug!("{}", err),
+            // }
+            clone_enforcer
+                .write()
+                .await
+                .add_named_grouping_policy(&ptype, policy)
+                .await;
+            continue;
+        } else {
+            unreachable!()
+        }
+    }
 
     HttpServer::new(move || {
         App::new()
             .data(pool.clone())
-            //.data(addr.clone())
+            .data(casbin_actor.clone())
             .wrap(
                 Cors::new()
                     .send_wildcard()
@@ -80,6 +100,7 @@ async fn main() -> Result<()> {
             )
             .wrap(NormalizePath)
             .wrap(actix_web::middleware::Logger::default())
+            .wrap(casbin_middleware.clone())
             .configure(routers::routes)
     })
     .bind("127.0.0.1:8080")?

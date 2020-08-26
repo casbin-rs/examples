@@ -1,7 +1,6 @@
 use actix_web::web;
 
 use crate::api::*;
-//use actix_casbin_auth::CasbinService;
 
 pub fn routes(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -22,29 +21,37 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                     ),
             )
             .service(
-                web::scope("/users")
+                web::scope("/admin")
                     .wrap(crate::middleware::authn::Authentication)
                     .service(
-                        web::resource("/{id}")
-                            .route(web::delete().to(user::delete_user)),
+                        web::resource("/user/{id}")
+                            .route(web::delete().to(user::delete_user))
+                            .route(web::get().to(user::find_by_id)),
+                    )
+                    .service(
+                        web::resource("/post/{id}")
+                            .route(web::get().to(post::find_by_id))
+                            .route(web::delete().to(post::delete)),
+                    )
+                    .service(
+                        web::resource("/users").route(web::get().to(user::find_all)),
+                    )
+                    .service(
+                        web::resource("/posts").route(web::get().to(post::find_all)),
                     ),
             )
             .service(
                 web::scope("/post")
                     .wrap(crate::middleware::authn::Authentication)
                     .service(
-                        web::resource("{id}")
-                            .route(web::get().to(post::find_by_id_admin))
-                            .route(web::delete().to(post::delete)),
+                        web::resource("/{id}").route(web::get().to(post::find_by_id)),
                     )
                     .service(web::resource("").route(web::post().to(post::insert))),
             )
             .service(
-                web::scope("/posts")
-                    .service(
-                        web::resource("{id}").route(web::get().to(post::find_by_id)),
-                    )
-                    .service(web::resource("").route(web::get().to(post::find_all))),
+                web::scope("/posts").service(
+                    web::resource("").route(web::get().to(post::find_all_public)),
+                ),
             ),
     );
 }

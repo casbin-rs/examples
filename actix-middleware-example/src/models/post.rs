@@ -37,14 +37,20 @@ pub struct DeletePost {
 }
 
 impl Post {
-    pub fn find_all(conn: &Connection) -> QueryResult<Vec<Post>> {
+    pub fn find_all(is_admin: bool, conn: &Connection) -> QueryResult<Vec<Post>> {
+        if is_admin {
+            return posts::table.order(id.asc()).load::<Post>(conn);
+        }
         posts::table
             .filter(is_deleted.eq(false))
             .order(id.asc())
             .load::<Post>(conn)
     }
 
-    pub fn find_by_id(i: i32, conn: &Connection) -> QueryResult<Post> {
+    pub fn find_by_id(is_admin: bool, i: i32, conn: &Connection) -> QueryResult<Post> {
+        if is_admin {
+            return posts::table.find(i).get_result::<Post>(conn);
+        }
         posts::table
             .filter(is_deleted.eq(false))
             .find(i)

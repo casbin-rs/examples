@@ -32,6 +32,7 @@ pub fn load_csv<P: AsRef<Path>>(paths: Vec<P>) -> Vec<Vec<String>> {
 fn load_records<P: AsRef<Path>>(p: P) -> Vec<StringRecord> {
     if let Ok(mut rdr) = ReaderBuilder::new()
         .has_headers(false)
+        .flexible(true)
         .double_quote(false)
         .comment(Some(b'#'))
         .delimiter(b',')

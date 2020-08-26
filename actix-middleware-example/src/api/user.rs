@@ -54,7 +54,7 @@ pub async fn logout(req: HttpRequest, pool: web::Data<Pool>) -> Result<HttpRespo
     }
 }
 
-//#[delete("/users/{id}")]
+//#[delete("/admin/user/{id}")]
 pub async fn delete_user(
     req: HttpRequest,
     user_id: web::Path<String>,
@@ -92,6 +92,29 @@ pub async fn delete_self(
             constants::MESSAGE_DELETE_USER_SUCCESS,
             constants::EMPTY,
         ))),
+        Err(err) => Ok(err.response()),
+    }
+}
+
+//#[get("/admin/user/{id}")]
+pub async fn find_by_id(
+    id: web::Path<String>,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse> {
+    match account_service::find_by_id(id.into_inner().parse::<i32>().unwrap(), &pool) {
+        Ok(user) => {
+            Ok(HttpResponse::Ok().json(ResponseBody::new(constants::MESSAGE_OK, user)))
+        }
+        Err(err) => Ok(err.response()),
+    }
+}
+
+//#[get("/admin/users")]
+pub async fn find_all(pool: web::Data<Pool>) -> Result<HttpResponse> {
+    match account_service::find_all(&pool) {
+        Ok(users) => {
+            Ok(HttpResponse::Ok().json(ResponseBody::new(constants::MESSAGE_OK, users)))
+        }
         Err(err) => Ok(err.response()),
     }
 }

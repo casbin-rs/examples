@@ -68,13 +68,13 @@ pub struct DeleteUser {
 pub const DEFAULT_USER_ROLE: i32 = 2;
 
 impl User {
-    // pub fn find_all(conn: &Connection) -> QueryResult<Vec<User>> {
-    //     users.order(id.asc()).load::<User>(conn)
-    // }
+    pub fn find_all(conn: &Connection) -> QueryResult<Vec<User>> {
+        users.order(id.asc()).load::<User>(conn)
+    }
 
-    // pub fn find_by_id(i: i32, conn: &Connection) -> QueryResult<User> {
-    //     users.find(i).get_result::<User>(conn)
-    // }
+    pub fn find_by_id(i: i32, conn: &Connection) -> QueryResult<User> {
+        users.find(i).get_result::<User>(conn)
+    }
 
     pub fn signup(user: NewUser, conn: &Connection) -> Result<String, String> {
         if Self::find_user_by_username(&user.username, conn).is_err() {

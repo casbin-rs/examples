@@ -72,6 +72,26 @@ pub fn logout(req: HttpRequest, pool: &web::Data<Pool>) -> Result<(), ServiceErr
     Ok(())
 }
 
+pub fn find_all(pool: &web::Data<Pool>) -> Result<Vec<User>, ServiceError> {
+    match User::find_all(&pool.get().unwrap()) {
+        Ok(user) => Ok(user),
+        Err(_) => Err(ServiceError::new(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            constants::MESSAGE_CAN_NOT_FETCH_DATA.to_string(),
+        )),
+    }
+}
+
+pub fn find_by_id(user_id: i32, pool: &web::Data<Pool>) -> Result<User, ServiceError> {
+    match User::find_by_id(user_id, &pool.get().unwrap()) {
+        Ok(user) => Ok(user),
+        Err(_) => Err(ServiceError::new(
+            StatusCode::INTERNAL_SERVER_ERROR,
+            constants::MESSAGE_CAN_NOT_FETCH_DATA.to_string(),
+        )),
+    }
+}
+
 pub fn delete_admin(
     req: HttpRequest,
     delete_user_id: i32,
