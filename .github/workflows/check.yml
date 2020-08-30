@@ -16,6 +16,12 @@ jobs:
     steps:
     - name: "Checkout Repository"
       uses: actions/checkout@v1
+  
+    - name: Generate test secret key
+      shell: sh
+      run: |
+        mv src/secret.key.sample src/secret.key
+      working-directory: actix-middleware-example
 
     - name: "Print Rust Version"
       run: |
@@ -30,7 +36,9 @@ jobs:
     name: "Check Formatting"
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - name: "Checkout Repository"
+      uses: actions/checkout@v1
+
     - name: "Use the latest Rust stable with rustfmt"
       uses: actions-rs/toolchain@v1
       with:
@@ -38,13 +46,21 @@ jobs:
           profile: minimal
           components: rustfmt
           override: true
-    - run: cargo fmt --all -- --check
+      run: cargo fmt --all -- --check
 
   check_clippy:
     name: "Check Clippy"
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - name: "Checkout Repository"
+      uses: actions/checkout@v1
+
+    - name: Generate test secret key
+      shell: sh
+      run: |
+        mv src/secret.key.sample src/secret.key
+      working-directory: actix-middleware-example
+
     - name: "Use the latest Rust stable with clippy"
       uses: actions-rs/toolchain@v1
       with:
@@ -52,4 +68,4 @@ jobs:
           profile: minimal
           components: clippy
           override: true
-    - run: cargo clippy -- -D warnings
+      run: cargo clippy -- -D warnings
