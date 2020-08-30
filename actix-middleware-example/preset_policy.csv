@@ -1,0 +1,21 @@
+p, user_role_post_publish, post_publish_group, (POST)|(GET)
+p, user_role_user, user_group, (DELETE)|(POST)
+p, admin_role_user_manage, user_manage_group, GET
+p, admin_role_post_manage, post_manage_group, GET
+
+g2, /api/post, post_publish_group
+g2, /api/admin/posts, post_manage_group
+g2, /api/user/logout, user_group
+g2, /api/user, user_group
+g2, /api/admin/users, user_manage_group
+g3, /api/posts, publicAction
+g3, /api/auth/login, publicAction
+g3, /api/auth/signup, publicAction
+
+g, admin, admin_role_user_manage
+g, admin, admin_role_post_manage
+g, admin, user_role_post_publish
+g, admin, user_role_user
+p, admin, /api/admin/post/:id, (GET)|(DELETE)
+p, admin, /api/admin/user/:id, (GET)|(DELETE)
+p, admin, /api/post/:id, (GET)|(DELETE)

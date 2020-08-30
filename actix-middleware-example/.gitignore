@@ -1,0 +1,6 @@
+/target
+.env
+.idea/
+Cargo.lock
+src/secret.key
+.vscode/
