@@ -11,7 +11,6 @@ g2, /api/admin/users, user_manage_group
 g3, /api/posts, publicAction
 g3, /api/auth/login, publicAction
 g3, /api/auth/signup, publicAction
-g4, root, root
 
 g, admin, admin_role_user_manage
 g, admin, admin_role_post_manage
@@ -19,3 +18,4 @@ g, admin, user_role_post_publish
 g, admin, user_role_user
 p, admin, /api/admin/post/:id, (GET)|(DELETE)
 p, admin, /api/admin/user/:id, (GET)|(DELETE)
+p, admin, /api/post/:id, (GET)|(DELETE)

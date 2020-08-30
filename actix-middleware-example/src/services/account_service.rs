@@ -6,6 +6,9 @@ use crate::{
     models::user::{DeleteUser, LoginForm, NewUser, User},
     models::user_token::UserToken,
 };
+use actix::Addr;
+use actix_casbin::{CasbinActor, CasbinCmd, CasbinResult};
+use actix_casbin_auth::casbin::CachedEnforcer;
 use actix_casbin_auth::CasbinVals;
 use actix_web::{http::StatusCode, web, HttpRequest};
 
@@ -15,13 +18,58 @@ pub struct TokenBodyResponse {
     pub token_type: String,
 }
 
-pub fn signup(user: NewUser, pool: &web::Data<Pool>) -> Result<String, ServiceError> {
-    match User::signup(user, &pool.get().unwrap()) {
-        Ok(message) => Ok(message),
-        Err(message) => Err(ServiceError::new(
+pub async fn signup(
+    user: NewUser,
+    pool: &web::Data<Pool>,
+    actor: web::Data<Addr<CasbinActor<CachedEnforcer>>>,
+) -> Result<String, ServiceError> {
+    let casbin_actor = actor.into_inner();
+    let username = user.clone().username;
+    let g_policies = vec![
+        vec![username.clone(), "user_role_post_publish".to_string()],
+        vec![username.clone(), "user_role_user".to_string()],
+    ];
+    let p_policy = vec![
+        username.clone(),
+        "/api/post/:id".to_string(),
+        "(GET)|(DELETE)".to_string(),
+    ];
+    let result_p = match casbin_actor.send(CasbinCmd::AddPolicy(p_policy)).await {
+        Ok(Ok(CasbinResult::AddPolicy(result))) => result,
+        _ => {
+            return Err(ServiceError::new(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                constants::MESSAGE_NEW_USER_ADD_PERMISSION_ERROR.to_string(),
+            ))
+        }
+    };
+
+    let result_g = match casbin_actor
+        .send(CasbinCmd::AddGroupingPolicies(g_policies))
+        .await
+    {
+        Ok(Ok(CasbinResult::AddGroupingPolicies(result))) => result,
+        _ => {
+            return Err(ServiceError::new(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                constants::MESSAGE_NEW_USER_ADD_PERMISSION_ERROR.to_string(),
+            ))
+        }
+    };
+
+    if result_g && result_p {
+        match User::signup(user, &pool.get().unwrap()) {
+            Ok(message) => Ok(message),
+            Err(message) => Err(ServiceError::new(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                message,
+            )),
+        }
+    } else {
+        Err(ServiceError::new(
             StatusCode::INTERNAL_SERVER_ERROR,
-            message,
-        )),
+            constants::MESSAGE_NEW_USER_ADD_PERMISSION_ERROR.to_string(),
+        ))
     }
 }
 

@@ -24,7 +24,7 @@ pub struct User {
     pub login_session: String,
 }
 
-#[derive(Insertable, Serialize, Deserialize, AsChangeset)]
+#[derive(Insertable, Serialize, Deserialize, AsChangeset, Clone)]
 #[table_name = "users"]
 pub struct NewUser {
     pub username: String,

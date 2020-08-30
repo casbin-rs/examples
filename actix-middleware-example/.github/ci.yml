@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - '*'
+      - '!staging.tmp'
+  pull_request:
+    branches:
+      - '*'
+      - '!staging.tmp'
+  tags:
+    - '*'
+
+jobs:
+  build:
+    name: Auto Build CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@master
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: rustfmt, clippy
+          override: true
+
+      - name: Generate test secret key
+        shell: sh
+        run: |
+          mv src/secret.key.sample src/secret.key
+
+      - name: Install Dependencies
+        run: sudo apt-get install libssl-dev
+
+      - name: Cargo Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+
+      - name: Cargo Clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings
+
+      - name: Cargo Fmt Check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check

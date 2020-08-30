@@ -14,7 +14,6 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
             )
             .service(
                 web::scope("/user")
-                    .wrap(crate::middleware::authn::Authentication)
                     .service(web::resource("logout").route(web::post().to(user::logout)))
                     .service(
                         web::resource("").route(web::delete().to(user::delete_self)),
@@ -22,7 +21,6 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
             )
             .service(
                 web::scope("/admin")
-                    .wrap(crate::middleware::authn::Authentication)
                     .service(
                         web::resource("/user/{id}")
                             .route(web::delete().to(user::delete_user))
@@ -42,7 +40,6 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
             )
             .service(
                 web::scope("/post")
-                    .wrap(crate::middleware::authn::Authentication)
                     .service(
                         web::resource("/{id}").route(web::get().to(post::find_by_id)),
                     )

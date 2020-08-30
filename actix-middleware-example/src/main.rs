@@ -11,17 +11,16 @@ extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
 
-use actix_web::{App, HttpServer};
-
 use crate::utils::csv_utils::{load_csv, walk_csv};
-use actix_casbin::casbin::Result;
-use actix_casbin::casbin::{CachedEnforcer, DefaultModel};
-use actix_casbin::{CasbinActor, CasbinCmd};
-use actix_casbin_auth::casbin::MgmtApi;
+use actix::Supervisor;
+use actix_casbin::casbin::{CachedEnforcer, DefaultModel, MgmtApi, Result};
+use actix_casbin::CasbinActor;
 use actix_casbin_auth::CasbinService;
 use actix_cors::Cors;
 use actix_web::middleware::NormalizePath;
+use actix_web::{App, HttpServer};
 use diesel_adapter::DieselAdapter;
+use std::env;
 
 mod api;
 mod config;
@@ -39,6 +38,10 @@ async fn main() -> Result<()> {
     dotenv::dotenv().expect("Failed to read .env file, please add it");
     std::env::set_var("RUST_LOG", "actix_web=debug");
     env_logger::init();
+
+    let app_host = env::var("APP_HOST").expect("APP_HOST must be set.");
+    let app_port = env::var("APP_PORT").expect("APP_PORT must be set.");
+    let app_url = format!("{}:{}", &app_host, &app_port);
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
     let pool = config::db::migrate_and_config_db(&database_url);
@@ -46,36 +49,31 @@ async fn main() -> Result<()> {
     let model = DefaultModel::from_file("casbin.conf").await?;
     let adapter = DieselAdapter::new()?;
     let mut casbin_middleware = CasbinService::new(model, adapter).await;
-    casbin_middleware.write().await;
 
-    let share_enforcer = casbin_middleware.get_enforcer().await;
+    let share_enforcer = casbin_middleware.get_enforcer();
     let clone_enforcer = share_enforcer.clone();
-    let casbin_actor =
-        CasbinActor::<CachedEnforcer>::set_enforcer(share_enforcer).await?;
+    let casbin_actor = CasbinActor::<CachedEnforcer>::set_enforcer(share_enforcer)?;
+    let started_actor = Supervisor::start(|_| casbin_actor);
 
     let preset_rules = load_csv(walk_csv("."));
     for mut policy in preset_rules {
         let ptype = policy.remove(0);
         if ptype.starts_with('p') {
-            // match casbin_actor.send(CasbinCmd::AddPolicy(policy)).await {
-            //     Ok(_) => info!("p policies has been added in database"),
-            //     Err(err) => debug!("{}", err),
-            //}
-            clone_enforcer.write().await.add_policy(policy).await;
+            match clone_enforcer.write().await.add_policy(policy).await {
+                Ok(_) => info!("Preset policies(p) add successfully"),
+                Err(err) => error!("Preset policies(p) add error: {}", err.to_string()),
+            };
             continue;
-        } else if ptype.starts_with("g") {
-            // match casbin_actor
-            //     .send(CasbinCmd::AddNamedGroupingPolicy(ptype.to_string(), policy))
-            //     .await
-            // {
-            //     Ok(_) => info!("g policies has been added in database"),
-            //     Err(err) => debug!("{}", err),
-            // }
-            clone_enforcer
+        } else if ptype.starts_with('g') {
+            match clone_enforcer
                 .write()
                 .await
                 .add_named_grouping_policy(&ptype, policy)
-                .await;
+                .await
+            {
+                Ok(_) => info!("Preset policies(p) add successfully"),
+                Err(err) => error!("Preset policies(g) add error: {}", err.to_string()),
+            };
             continue;
         } else {
             unreachable!()
@@ -85,7 +83,7 @@ async fn main() -> Result<()> {
     HttpServer::new(move || {
         App::new()
             .data(pool.clone())
-            .data(casbin_actor.clone())
+            .data(started_actor.clone())
             .wrap(
                 Cors::new()
                     .send_wildcard()
@@ -101,9 +99,10 @@ async fn main() -> Result<()> {
             .wrap(NormalizePath)
             .wrap(actix_web::middleware::Logger::default())
             .wrap(casbin_middleware.clone())
+            .wrap(crate::middleware::authn::Authentication)
             .configure(routers::routes)
     })
-    .bind("127.0.0.1:8080")?
+    .bind(&app_url)?
     .run()
     .await?;
 

@@ -8,6 +8,9 @@ use crate::{
     },
     services::account_service,
 };
+use actix::Addr;
+use actix_casbin::CasbinActor;
+use actix_casbin_auth::casbin::CachedEnforcer;
 use actix_web::{web, HttpRequest, HttpResponse, Result};
 use chrono::{NaiveDateTime, Utc};
 
@@ -28,11 +31,12 @@ pub async fn login(
 pub async fn signup(
     signup_form: web::Json<NewUser>,
     pool: web::Data<Pool>,
+    actor: web::Data<Addr<CasbinActor<CachedEnforcer>>>,
 ) -> Result<HttpResponse> {
     let mut user = signup_form.into_inner();
     user.created_at = NaiveDateTime::from_timestamp(Utc::now().timestamp(), 0);
 
-    match account_service::signup(user, &pool) {
+    match account_service::signup(user, &pool, actor).await {
         Ok(message) => {
             Ok(HttpResponse::Ok().json(ResponseBody::new(&message, constants::EMPTY)))
         }

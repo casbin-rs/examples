@@ -27,7 +27,8 @@ pub struct Authentication;
 
 impl<S, B> Transform<S> for Authentication
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>
+        + 'static,
     S::Future: 'static,
     B: 'static,
 {
@@ -50,7 +51,8 @@ pub struct AuthenticationMiddleware<S> {
 
 impl<S, B> Service for AuthenticationMiddleware<S>
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>
+        + 'static,
     S::Future: 'static,
     B: 'static,
 {
@@ -64,7 +66,9 @@ where
     }
 
     fn call(&mut self, mut req: ServiceRequest) -> Self::Future {
+        let mut srv = self.service.clone();
         let mut authenticate_pass: bool = false;
+        let mut public_route: bool = false;
         let mut authenticate_username: String = String::from("");
 
         // Bypass some account routes
@@ -79,6 +83,7 @@ where
             for ignore_route in constants::IGNORE_ROUTES.iter() {
                 if req.path().starts_with(ignore_route) {
                     authenticate_pass = true;
+                    public_route = true;
                 }
             }
             if !authenticate_pass {
@@ -115,15 +120,21 @@ where
             }
         }
         if authenticate_pass {
-            // Box::pin(async move {
-            let vals = CasbinVals {
-                subject: authenticate_username,
-                domain: None,
-            };
-            req.extensions_mut().insert(vals);
-            Box::pin(self.service.clone().call(req))
-        // Ok(res)
-        // })
+            if public_route {
+                let vals = CasbinVals {
+                    subject: "anonymous".to_string(),
+                    domain: None,
+                };
+                req.extensions_mut().insert(vals);
+                Box::pin(async move { srv.call(req).await })
+            } else {
+                let vals = CasbinVals {
+                    subject: authenticate_username,
+                    domain: None,
+                };
+                req.extensions_mut().insert(vals);
+                Box::pin(async move { srv.clone().call(req).await })
+            }
         } else {
             Box::pin(async move {
                 Ok(req.into_response(
