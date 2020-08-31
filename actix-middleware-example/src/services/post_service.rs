@@ -91,6 +91,16 @@ pub fn find_by_id(
     }
 }
 
+pub fn find_by_id_public(id: i32, pool: &web::Data<Pool>) -> Result<Post, ServiceError> {
+    match Post::find_by_id(false, id, &pool.get().unwrap()) {
+        Ok(post) => Ok(post),
+        Err(_) => Err(ServiceError::new(
+            StatusCode::NOT_FOUND,
+            format!("Post with id {} not found", id),
+        )),
+    }
+}
+
 pub fn insert(new_post: NewPost, pool: &web::Data<Pool>) -> Result<(), ServiceError> {
     match Post::insert(new_post, &pool.get().unwrap()) {
         Ok(_) => Ok(()),
