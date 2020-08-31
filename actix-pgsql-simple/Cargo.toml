@@ -5,7 +5,7 @@ edition = "2018"
 
 [dependencies]
 casbin = "1.1"
-diesel-adapter = { version = "0.7", features = ["postgres"] }
+diesel-adapter = { version = "0.8", features = ["postgres"] }
 async-std = { version = "1.6", features = ["attributes"] }
 
 diesel = { version = "1.4", features = ["postgres", "serde_json", "r2d2"] }
