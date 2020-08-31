@@ -22,11 +22,11 @@ pub async fn find_all_public(pool: web::Data<Pool>) -> Result<HttpResponse> {
 
 //#[get("/post/{id}")]
 pub async fn find_by_id(
-    req: HttpRequest,
     id: web::Path<String>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse> {
-    match post_service::find_by_id(req, id.into_inner().parse::<i32>().unwrap(), &pool) {
+    match post_service::find_by_id_public(id.into_inner().parse::<i32>().unwrap(), &pool)
+    {
         Ok(post) => {
             Ok(HttpResponse::Ok().json(ResponseBody::new(constants::MESSAGE_OK, post)))
         }
@@ -54,6 +54,20 @@ pub async fn insert(
     match post_service::insert(post, &pool) {
         Ok(()) => Ok(HttpResponse::Created()
             .json(ResponseBody::new(constants::MESSAGE_OK, constants::EMPTY))),
+        Err(err) => Ok(err.response()),
+    }
+}
+
+//#[get("/admin/post/{id}")]
+pub async fn find_by_id_admin(
+    req: HttpRequest,
+    id: web::Path<String>,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse> {
+    match post_service::find_by_id(req, id.into_inner().parse::<i32>().unwrap(), &pool) {
+        Ok(post) => {
+            Ok(HttpResponse::Ok().json(ResponseBody::new(constants::MESSAGE_OK, post)))
+        }
         Err(err) => Ok(err.response()),
     }
 }

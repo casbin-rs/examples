@@ -28,7 +28,7 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
                     )
                     .service(
                         web::resource("/post/{id}")
-                            .route(web::get().to(post::find_by_id))
+                            .route(web::get().to(post::find_by_id_admin))
                             .route(web::delete().to(post::delete)),
                     )
                     .service(

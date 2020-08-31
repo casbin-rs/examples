@@ -29,21 +29,6 @@ pub async fn signup(
         vec![username.clone(), "user_role_post_publish".to_string()],
         vec![username.clone(), "user_role_user".to_string()],
     ];
-    let p_policy = vec![
-        username.clone(),
-        "/api/post/:id".to_string(),
-        "(GET)|(DELETE)".to_string(),
-    ];
-    let result_p = match casbin_actor.send(CasbinCmd::AddPolicy(p_policy)).await {
-        Ok(Ok(CasbinResult::AddPolicy(result))) => result,
-        _ => {
-            return Err(ServiceError::new(
-                StatusCode::INTERNAL_SERVER_ERROR,
-                constants::MESSAGE_NEW_USER_ADD_PERMISSION_ERROR.to_string(),
-            ))
-        }
-    };
-
     let result_g = match casbin_actor
         .send(CasbinCmd::AddGroupingPolicies(g_policies))
         .await
@@ -56,8 +41,7 @@ pub async fn signup(
             ))
         }
     };
-
-    if result_g && result_p {
+    if result_g {
         match User::signup(user, &pool.get().unwrap()) {
             Ok(message) => Ok(message),
             Err(message) => Err(ServiceError::new(

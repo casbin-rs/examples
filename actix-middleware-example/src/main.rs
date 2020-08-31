@@ -13,7 +13,9 @@ extern crate serde_json;
 
 use crate::utils::csv_utils::{load_csv, walk_csv};
 use actix::Supervisor;
-use actix_casbin::casbin::{CachedEnforcer, DefaultModel, MgmtApi, Result};
+use actix_casbin::casbin::{
+    function_map::key_match2, CachedEnforcer, CoreApi, DefaultModel, MgmtApi, Result,
+};
 use actix_casbin::CasbinActor;
 use actix_casbin_auth::CasbinService;
 use actix_cors::Cors;
@@ -43,12 +45,23 @@ async fn main() -> Result<()> {
     let app_port = env::var("APP_PORT").expect("APP_PORT must be set.");
     let app_url = format!("{}:{}", &app_host, &app_port);
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let pool_size: u32 = std::env::var("POOL_SIZE")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(8);
 
-    let pool = config::db::migrate_and_config_db(&database_url);
+    let pool = config::db::migrate_and_config_db(&database_url, pool_size);
 
     let model = DefaultModel::from_file("casbin.conf").await?;
-    let adapter = DieselAdapter::new()?;
+    let adapter = DieselAdapter::new(database_url, pool_size)?;
     let mut casbin_middleware = CasbinService::new(model, adapter).await;
+    casbin_middleware
+        .write()
+        .await
+        .get_role_manager()
+        .write()
+        .unwrap()
+        .matching_fn(Some(key_match2), None);
 
     let share_enforcer = casbin_middleware.get_enforcer();
     let clone_enforcer = share_enforcer.clone();
