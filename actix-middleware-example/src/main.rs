@@ -54,7 +54,7 @@ async fn main() -> Result<()> {
 
     let model = DefaultModel::from_file("casbin.conf").await?;
     let adapter = DieselAdapter::new(database_url, pool_size)?;
-    let mut casbin_middleware = CasbinService::new(model, adapter).await;
+    let mut casbin_middleware = CasbinService::new(model, adapter).await.unwrap();
     casbin_middleware
         .write()
         .await
