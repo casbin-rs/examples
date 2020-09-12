@@ -19,7 +19,7 @@ use actix_casbin::casbin::{
 use actix_casbin::CasbinActor;
 use actix_casbin_auth::CasbinService;
 use actix_cors::Cors;
-use actix_web::middleware::NormalizePath;
+//use actix_web::middleware::NormalizePath;
 use actix_web::{App, HttpServer};
 use diesel_adapter::DieselAdapter;
 use std::env;
@@ -109,7 +109,7 @@ async fn main() -> Result<()> {
                     .max_age(3600)
                     .finish(),
             )
-            .wrap(NormalizePath)
+            //.wrap(NormalizePath)
             .wrap(actix_web::middleware::Logger::default())
             .wrap(casbin_middleware.clone())
             .wrap(crate::middleware::authn::Authentication)
