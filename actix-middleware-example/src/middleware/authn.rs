@@ -90,7 +90,7 @@ where
                 if let Some(pool) = req.app_data::<Pool>() {
                     info!("Connecting to database...");
                     if let Some(authen_header) =
-                        req.headers_mut().get(constants::AUTHORIZATION)
+                        req.headers().get(constants::AUTHORIZATION)
                     {
                         info!("Parsing authorization header...");
                         if let Ok(authen_str) = authen_header.to_str() {
@@ -103,7 +103,7 @@ where
                                     token_utils::decode_token(token.to_string())
                                 {
                                     info!("Decoding token...");
-                                    if token_utils::verify_token(&token_data, &pool)
+                                    if token_utils::verify_token(&token_data, pool)
                                         .is_ok()
                                     {
                                         info!("Valid token");
