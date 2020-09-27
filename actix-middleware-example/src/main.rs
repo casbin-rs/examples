@@ -21,7 +21,7 @@ use actix_casbin_auth::CasbinService;
 use actix_cors::Cors;
 //use actix_web::middleware::NormalizePath;
 use actix_web::{App, HttpServer};
-use diesel_adapter::DieselAdapter;
+use sqlx_adapter::SqlxAdapter;
 use std::env;
 
 mod api;
@@ -53,7 +53,7 @@ async fn main() -> Result<()> {
     let pool = config::db::migrate_and_config_db(&database_url, pool_size);
 
     let model = DefaultModel::from_file("casbin.conf").await?;
-    let adapter = DieselAdapter::new(database_url, pool_size)?;
+    let adapter = SqlxAdapter::new(database_url, pool_size).await?;
     let mut casbin_middleware = CasbinService::new(model, adapter).await.unwrap();
     casbin_middleware
         .write()
