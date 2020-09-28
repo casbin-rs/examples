@@ -5,6 +5,7 @@ use crate::{
         user_token::{UserToken, KEY},
     },
 };
+use actix_web::web::Data;
 use jsonwebtoken::{DecodingKey, TokenData, Validation};
 
 pub fn decode_token(
@@ -19,7 +20,7 @@ pub fn decode_token(
 
 pub fn verify_token(
     token_data: &TokenData<UserToken>,
-    pool: &Pool,
+    pool: &Data<Pool>,
 ) -> Result<String, String> {
     if User::is_valid_login_session(&token_data.claims, &pool.get().unwrap()) {
         Ok(token_data.claims.user.to_string())
