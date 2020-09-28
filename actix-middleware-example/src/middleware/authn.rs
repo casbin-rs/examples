@@ -4,12 +4,11 @@ use crate::{
 };
 
 use actix_casbin_auth::CasbinVals;
-
 use actix_service::{Service, Transform};
-use actix_web::http::header::{HeaderName, HeaderValue};
 use actix_web::{
     dev::{ServiceRequest, ServiceResponse},
-    http::Method,
+    http::{HeaderName, HeaderValue, Method},
+    web::Data,
     Error, HttpMessage, HttpResponse,
 };
 use futures::{
@@ -87,7 +86,7 @@ where
                 }
             }
             if !authenticate_pass {
-                if let Some(pool) = req.app_data::<Pool>() {
+                if let Some(pool) = req.app_data::<Data<Pool>>() {
                     info!("Connecting to database...");
                     if let Some(authen_header) =
                         req.headers().get(constants::AUTHORIZATION)
