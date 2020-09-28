@@ -23,7 +23,7 @@ use actix_web::middleware::normalize::TrailingSlash;
 use actix_web::middleware::Logger;
 use actix_web::middleware::NormalizePath;
 use actix_web::{App, HttpServer};
-use sqlx_adapter::SqlxAdapter;
+use diesel_adapter::DieselAdapter;
 use std::env;
 
 mod api;
@@ -55,7 +55,7 @@ async fn main() -> Result<()> {
     let pool = config::db::migrate_and_config_db(&database_url, pool_size);
 
     let model = DefaultModel::from_file("casbin.conf").await?;
-    let adapter = SqlxAdapter::new(database_url, pool_size).await?;
+    let adapter = DieselAdapter::new(database_url, pool_size)?;
     let mut casbin_middleware = CasbinService::new(model, adapter).await.unwrap();
     casbin_middleware
         .write()
