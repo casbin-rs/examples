@@ -16,11 +16,12 @@ async fn main() -> std::io::Result<()> {
 
     let mut enforcer = get_enforcer().await;
     enforcer
-        .add_policy(vec![
-            "casbin".to_string(),
-            "index".to_string(),
-            "read".to_string(),
-        ])
+        .add_policy(
+            vec!["casbin", "index", "read"]
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
+        )
         .await
         .unwrap();
 
@@ -51,7 +52,7 @@ async fn index(me: web::Query<Visitor>) -> impl Responder {
 async fn grant(sub: &str, obj: &str, act: &str) -> Result<()> {
     let e = get_enforcer().await;
 
-    if let Ok(authorized) = e.enforce(&[sub, obj, act]) {
+    if let Ok(authorized) = e.enforce((sub, obj, act)) {
         if authorized {
             Ok(())
         } else {
@@ -63,9 +64,14 @@ async fn grant(sub: &str, obj: &str, act: &str) -> Result<()> {
 }
 
 async fn get_enforcer() -> Enforcer {
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let pool_size: u32 = std::env::var("POOL_SIZE")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(8);
     let m = DefaultModel::from_file("model/rbac_model.conf")
         .await
         .unwrap();
-    let a = DieselAdapter::new().unwrap();
+    let a = DieselAdapter::new(database_url, pool_size).unwrap();
     Enforcer::new(m, a).await.unwrap()
 }
