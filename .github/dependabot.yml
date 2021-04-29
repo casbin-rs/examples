@@ -1,0 +1,23 @@
+version: 2
+updates:
+- package-ecosystem: cargo
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "13:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: actix-service
+    versions:
+    - 2.0.0
+  - dependency-name: actix-rt
+    versions:
+    - 2.0.0
+    - 2.1.0
+  - dependency-name: ntex
+    versions:
+    - 0.2.1
+    - 0.3.2
+  - dependency-name: diesel-adapter
+    versions:
+    - 0.9.0
