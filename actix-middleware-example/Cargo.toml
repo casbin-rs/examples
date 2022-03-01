@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 http = "0.2.1"
-actix =  "0.11.0"
+actix =  "0.13.0"
 actix-web = "3.0.2"
 actix-service = "1.0.6"
 actix-rt = "1.1.1"
