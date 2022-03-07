@@ -6,7 +6,7 @@ edition = "2018"
 workspace = ".."
 
 [dependencies]
-ntex = "0.5"
-casbin = "2.0"
-dotenv = "0.15"
-loge = {version = "0.4", default-features = false, features = ["colored", "chrono"]}
+ntex = "0.5.15"
+casbin = "2.0.9"
+dotenv = "0.15.0"
+loge = {version = "0.4.2", default-features = false, features = ["colored", "chrono"]}
