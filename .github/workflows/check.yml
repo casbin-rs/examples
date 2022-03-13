@@ -1,6 +1,7 @@
 name: Check Code
 
 on:
+  pull_request:
   push:
     branches:
       - '*'
@@ -11,7 +12,10 @@ on:
 jobs:
   test:
     name: "Test"
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
     - name: "Checkout Repository"
@@ -27,14 +31,19 @@ jobs:
       run: |
         rustc -Vv
         cargo -Vv
-    - name: "Build for Linux"
+    
+    - name: "Build"
       run: |
         cargo check --all
         cargo test --all --no-fail-fast
 
   check_formatting:
     name: "Check Formatting"
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+  
     steps:
     - name: "Checkout Repository"
       uses: actions/checkout@v1
@@ -50,7 +59,11 @@ jobs:
 
   check_clippy:
     name: "Check Clippy"
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+
     steps:
     - name: "Checkout Repository"
       uses: actions/checkout@v1
@@ -69,3 +82,23 @@ jobs:
           components: clippy
           override: true
     - run: cargo clippy -- -D warnings
+  
+  check_cache:
+    name: "Check Cache"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+    
+    steps:
+    - name: "Checkout Repository"
+      uses: actions/checkout@v1
+
+    - name: "Use Rust stable"
+      uses: actions-rs/toolchain@v1
+      with:
+          toolchain: stable
+          profile: minimal
+  
+    - name: "Check rust_cache"
+      uses: Swatinem/rust-cache@v1 
