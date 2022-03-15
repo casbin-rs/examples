@@ -19,7 +19,18 @@ jobs:
 
     steps:
     - name: "Checkout Repository"
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
+      
+    - name: "Use Rust stable"
+      uses: actions-rs/toolchain@v1
+      with:
+          toolchain: stable
+          profile: minimal
+  
+    - name: "Check rust_cache"
+      uses: Swatinem/rust-cache@v1
+      with:
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
   
     - name: Generate test secret key
       shell: sh
@@ -35,6 +46,7 @@ jobs:
     - name: "Build"
       run: |
         cargo check --all
+        cargo build --verbose
         cargo test --all --no-fail-fast
 
   check_formatting:
@@ -46,7 +58,7 @@ jobs:
   
     steps:
     - name: "Checkout Repository"
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
 
     - name: "Use the latest Rust stable with rustfmt"
       uses: actions-rs/toolchain@v1
@@ -66,7 +78,7 @@ jobs:
 
     steps:
     - name: "Checkout Repository"
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
 
     - name: Generate test secret key
       shell: sh
@@ -82,23 +94,3 @@ jobs:
           components: clippy
           override: true
     - run: cargo clippy -- -D warnings
-  
-  check_cache:
-    name: "Check Cache"
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
-    
-    steps:
-    - name: "Checkout Repository"
-      uses: actions/checkout@v1
-
-    - name: "Use Rust stable"
-      uses: actions-rs/toolchain@v1
-      with:
-          toolchain: stable
-          profile: minimal
-  
-    - name: "Check rust_cache"
-      uses: Swatinem/rust-cache@v1 
