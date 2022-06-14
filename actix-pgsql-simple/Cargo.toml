@@ -5,13 +5,13 @@ edition = "2018"
 
 [dependencies]
 casbin = "2.0"
-diesel-adapter = { version = "0.8", features = ["postgres"] }
+diesel-adapter = { version = "0.9.0", features = ["postgres"] }
 async-std = { version = "1.6", features = ["attributes"] }
 
 diesel = { version = "1.4", features = ["postgres", "serde_json", "r2d2"] }
 
-actix-web = { version = "3.0" }
-actix-rt = "1.1"
+actix-web = { version = "4.1.0" }
+actix-rt = "2.7.0"
 serde = "1.0"
 serde_derive = "1.0"
 
