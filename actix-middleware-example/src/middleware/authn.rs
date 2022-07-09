@@ -6,8 +6,12 @@ use crate::{
 use actix_casbin_auth::CasbinVals;
 use actix_service::{Service, Transform};
 use actix_web::{
+    body::{EitherBody, MessageBody},
     dev::{ServiceRequest, ServiceResponse},
-    http::{HeaderName, HeaderValue, Method},
+    http::{
+        header::{HeaderName, HeaderValue},
+        Method,
+    },
     web::Data,
     Error, HttpMessage, HttpResponse,
 };
@@ -24,15 +28,12 @@ use std::{
 
 pub struct Authentication;
 
-impl<S, B> Transform<S> for Authentication
+impl<S, B> Transform<S, ServiceRequest> for Authentication
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>
-        + 'static,
-    S::Future: 'static,
-    B: 'static,
+S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+B: MessageBody,
 {
-    type Request = ServiceRequest;
-    type Response = ServiceResponse<B>;
+    type Response = ServiceResponse<EitherBody<B>>;
     type Error = Error;
     type InitError = ();
     type Transform = AuthenticationMiddleware<S>;
@@ -48,23 +49,20 @@ pub struct AuthenticationMiddleware<S> {
     service: Rc<RefCell<S>>,
 }
 
-impl<S, B> Service for AuthenticationMiddleware<S>
+impl<S, B> Service<ServiceRequest> for AuthenticationMiddleware<S>
 where
-    S: Service<Request = ServiceRequest, Response = ServiceResponse<B>, Error = Error>
-        + 'static,
-    S::Future: 'static,
-    B: 'static,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+    B: MessageBody,
 {
-    type Request = ServiceRequest;
-    type Response = ServiceResponse<B>;
-    type Error = Error;
+    type Response = ServiceResponse<EitherBody<B>>;
+    type Error = S::Error;
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
 
-    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
+    fn poll_ready(&self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         self.service.poll_ready(cx)
     }
 
-    fn call(&mut self, mut req: ServiceRequest) -> Self::Future {
+    fn call(&self, mut req: ServiceRequest) -> Self::Future {
         let mut srv = self.service.clone();
         let mut authenticate_pass: bool = false;
         let mut public_route: bool = false;
@@ -125,14 +123,14 @@ where
                     domain: None,
                 };
                 req.extensions_mut().insert(vals);
-                Box::pin(async move { srv.call(req).await })
+                Box::pin(async move { srv.call(req).await.map(|res| res.map_into_left_body()) })
             } else {
                 let vals = CasbinVals {
                     subject: authenticate_username,
                     domain: None,
                 };
                 req.extensions_mut().insert(vals);
-                Box::pin(async move { srv.clone().call(req).await })
+                Box::pin(async move { srv.clone().call(req).await.map(|res| res.map_into_left_body()) })
             }
         } else {
             Box::pin(async move {
@@ -142,7 +140,7 @@ where
                             constants::MESSAGE_INVALID_TOKEN,
                             constants::EMPTY,
                         ))
-                        .into_body(),
+                        .map_into_right_body(),
                 ))
             })
         }

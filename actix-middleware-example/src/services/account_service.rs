@@ -6,11 +6,11 @@ use crate::{
     models::user::{DeleteUser, LoginForm, NewUser, User},
     models::user_token::UserToken,
 };
-use actix::Addr;
+use actix::{Addr, dev::channel::AddressSender, Actor, Context};
 use actix_casbin::{CasbinActor, CasbinCmd, CasbinResult};
-use actix_casbin_auth::casbin::CachedEnforcer;
+use actix_casbin_auth::casbin::{CachedEnforcer, IEnforcer};
 use actix_casbin_auth::CasbinVals;
-use actix_web::{http::StatusCode, web, HttpRequest};
+use actix_web::{http::StatusCode, web, HttpRequest, HttpMessage};
 
 #[derive(Serialize, Deserialize)]
 pub struct TokenBodyResponse {

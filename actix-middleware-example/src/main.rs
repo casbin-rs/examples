@@ -62,7 +62,6 @@ async fn main() -> Result<()> {
         .await
         .get_role_manager()
         .write()
-        .unwrap()
         .matching_fn(Some(key_match2), None);
 
     let share_enforcer = casbin_middleware.get_enforcer();
@@ -100,7 +99,7 @@ async fn main() -> Result<()> {
             .data(pool.clone())
             .data(started_actor.clone())
             .wrap(
-                Cors::new()
+                Cors::default()
                     .send_wildcard()
                     .allowed_methods(vec!["GET", "POST", "DELETE"])
                     .allowed_headers(vec![
@@ -108,8 +107,7 @@ async fn main() -> Result<()> {
                         http::header::ACCEPT,
                     ])
                     .allowed_header(http::header::CONTENT_TYPE)
-                    .max_age(3600)
-                    .finish(),
+                    .max_age(3600),
             )
             .wrap(NormalizePath::new(TrailingSlash::Trim))
             .wrap(Logger::default())
