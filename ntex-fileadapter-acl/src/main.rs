@@ -6,7 +6,7 @@ use ntex::web::{self, middleware, App, HttpRequest, HttpResponse};
 
 /// simple handle
 async fn auth(
-    enforcer: web::types::Data<RwLock<Enforcer>>,
+    enforcer: web::types::State<RwLock<Enforcer>>,
     req: HttpRequest,
 ) -> HttpResponse {
     let e = enforcer.write().unwrap();
@@ -38,12 +38,12 @@ async fn main() -> io::Result<()> {
     let adapter = FileAdapter::new("acl/acl_policy.csv");
 
     let e = Enforcer::new(model, adapter).await.unwrap();
-    let e = web::types::Data::new(RwLock::new(e)); // wrap enforcer into actix-state
+    let e = web::types::State::new(RwLock::new(e)); // wrap enforcer into actix-state
 
     //move is necessary to give closure below ownership of counter
     web::server(move || {
         App::new()
-            .app_data(e.clone()) // <- create app with shared state
+            .app_state(e.clone()) // <- create app with shared state
             // enable logger
             .wrap(middleware::Logger::default())
             // register simple handler, handle all methods
