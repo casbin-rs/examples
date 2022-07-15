@@ -96,8 +96,8 @@ async fn main() -> Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .data(pool.clone())
-            .data(started_actor.clone())
+            .app_data(pool.clone())
+            .app_data(started_actor.clone())
             .wrap(
                 Cors::default()
                     .send_wildcard()

@@ -63,7 +63,7 @@ where
     }
 
     fn call(&self, mut req: ServiceRequest) -> Self::Future {
-        let mut srv = self.service.clone();
+        let srv = self.service.clone();
         let mut authenticate_pass: bool = false;
         let mut public_route: bool = false;
         let mut authenticate_username: String = String::from("");

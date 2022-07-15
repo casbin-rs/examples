@@ -6,9 +6,9 @@ use crate::{
     models::user::{DeleteUser, LoginForm, NewUser, User},
     models::user_token::UserToken,
 };
-use actix::{Addr, dev::channel::AddressSender, Actor, Context};
+use actix::Addr;
 use actix_casbin::{CasbinActor, CasbinCmd, CasbinResult};
-use actix_casbin_auth::casbin::{CachedEnforcer, IEnforcer};
+use actix_casbin_auth::casbin::{CachedEnforcer};
 use actix_casbin_auth::CasbinVals;
 use actix_web::{http::StatusCode, web, HttpRequest, HttpMessage};
 
