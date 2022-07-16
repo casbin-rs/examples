@@ -8,6 +8,6 @@ workspace = ".."
 [dependencies]
 actix-web = "4.1.0"
 actix-rt = "2.7.0"
-casbin = "2.0"
+casbin = "2.0.9"
 dotenv = "0.15"
 loge = {version = "0.4", default-features = false, features = ["colored", "chrono"]}
