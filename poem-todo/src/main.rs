@@ -27,6 +27,9 @@ fn main() {
         .expect("Error loading posts");
     println!("Displaying {} users", results.len());
     for user in results {
-        println!("{} {} {} {}", user.id, user.name, user.password, user.is_admin);
+        println!(
+            "{} {} {} {}",
+            user.id, user.name, user.password, user.is_admin
+        );
     }
 }

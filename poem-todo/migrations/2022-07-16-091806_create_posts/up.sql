@@ -8,10 +8,10 @@ CREATE TABLE todos
 
 CREATE TABLE users
 (
-    id       SERIAL PRIMARY KEY,
-    name     VARCHAR NOT NULL,
-    password VARCHAR NOT NULL,
-    is_admin BOOLEAN NOT NULL DEFAULT 'f'
+    id       SERIAL PRIMARY KEY NOT NULL,
+    name     VARCHAR            NOT NULL,
+    password VARCHAR            NOT NULL,
+    is_admin BOOLEAN            NOT NULL DEFAULT 'f'
 );
 
 INSERT INTO users
