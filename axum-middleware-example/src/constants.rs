@@ -8,3 +8,4 @@ pub const MESSAGE_PROCESS_TOKEN_ERROR: &str = "Error while processing token";
 pub const MESSAGE_INVALID_TOKEN: &str = "Invalid token, please login again";
 pub const MESSAGE_INTERNAL_SERVER_ERROR: &str = "Internal Server Error";
 pub const MESSAGE_TOKEN_MISSING: &str = "Token is missing";
+pub const MESSAGE_SIGNIN_FAILED: &str = "Wrong email or password, please try again";

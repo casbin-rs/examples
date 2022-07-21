@@ -1,8 +1,21 @@
 #[macro_use]
 extern crate diesel;
+#[macro_use]
+extern crate diesel_migrations;
+#[macro_use]
+extern crate log;
+#[macro_use]
+extern crate serde_json;
 
 mod model;
 mod schema;
+mod utils;
+mod errors;
+mod service;
+mod middleware;
+mod repository;
+mod route;
+mod constants;
 
 use crate::model::*;
 use crate::schema::*;

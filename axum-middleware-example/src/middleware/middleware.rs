@@ -1,9 +1,6 @@
 use axum::{response::Response, routing::get, BoxError, Router};
 use axum_casbin_auth::{CasbinAxumLayer, CasbinVals};
-use axum_test_helper::TestClient;
 use bytes::Bytes;
-use casbin::function_map::key_match2;
-use casbin::{CoreApi, DefaultModel, FileAdapter};
 use futures::future::BoxFuture;
 use http::{self, Request, StatusCode};
 use http_body::Body as HttpBody;
