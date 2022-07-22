@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate diesel;
 
+mod auth;
 mod models;
 mod schema;
 
@@ -48,6 +49,7 @@ async fn main() -> Result<(), std::io::Error> {
     let app = Route::new()
         .at("/hello/:name", get(hello))
         .at("/users", get(get_users))
+        .with(auth::BasicAuth)
         .data(Arc::new(Mutex::new(connection)));
     Server::new(TcpListener::bind("127.0.0.1:3000"))
         .name("poem-todo")

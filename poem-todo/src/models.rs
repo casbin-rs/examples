@@ -1,6 +1,7 @@
 use crate::todos::{self, dsl::*};
 use crate::users;
 use diesel::prelude::*;
+use diesel::result::Error;
 use serde::{Deserialize, Serialize};
 
 #[derive(Identifiable, Queryable, Serialize, Deserialize, PartialEq, Debug)]
@@ -67,6 +68,18 @@ impl User {
 
     pub fn find_by_id(i: i32, conn: &mut PgConnection) -> QueryResult<User> {
         users::table.find(i).get_result::<User>(conn)
+    }
+
+    pub fn find_user(
+        conn: &mut PgConnection,
+        username: &str,
+        password: &str,
+    ) -> Result<Option<User>, Error> {
+        users::table
+            .filter(users::name.eq(username))
+            .filter(users::password.eq(password))
+            .first::<User>(conn)
+            .optional()
     }
 
     pub fn find_self_todos(i: i32, conn: &mut PgConnection) -> QueryResult<Vec<Todo>> {
