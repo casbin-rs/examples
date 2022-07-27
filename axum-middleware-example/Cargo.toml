@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-axum = "0.5.7"
+axum = "0.5.13"
 futures = "0.3.5"
 failure = "0.1.8"
 serde = "1.0.116"

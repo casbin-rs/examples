@@ -1,3 +1,5 @@
+use axum::response::{IntoResponse, Response};
+use axum::body;
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -14,3 +16,9 @@ impl<T> ResponseBody<T> {
         }
     }
 }
+
+// impl<T> IntoResponse for ResponseBody<T> {
+//     fn into_response(self) -> Response {
+//         Response::new(ReponseBody<T>)
+//     }
+// }

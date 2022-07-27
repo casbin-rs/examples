@@ -1,7 +1,8 @@
 use crate::{
     model::{db::Connection, user_token::UserToken},
     schema::users::{self, dsl::*},
-    utils::bcrypt::compare_password,
+    utils::bcrypt::{compare_password, hash_password},
+    constants
 };
 
 use chrono::Utc;
@@ -28,16 +29,14 @@ pub struct NewUser {
     pub username: String,
     pub email: String,
     pub password: String,
-    // #[serde(default = "default_role")]
+    #[serde(default = "default_role")]
     pub role: String,
     pub login_session: String
 }
 
-// fn default_role() -> String {
-//     DEFAULT_USER_ROLE
-// }
-
-// pub const DEFAULT_USER_ROLE: String = "patient";
+fn default_role() -> String {
+    "patient".to_owned()
+}
 
 #[derive(Serialize, Deserialize)]
 pub struct LoginForm {
@@ -55,7 +54,23 @@ pub struct LoginInfo {
 }
 
 impl User {
-    pub fn add_user() {}
+    pub fn register(user: NewUser, conn: &Connection) -> Result<String, String> {
+        if Self::get_user_by_email(&user.email, conn).is_err() {
+            let hashed_pwd = hash_password(&user.password).unwrap();
+            let user_upd = NewUser {
+                password: hashed_pwd,
+                ..user
+            };
+            diesel::insert_into(users)
+                .values(&user_upd)
+                .execute(conn)
+                .map_err(|e| e.to_string())?;
+            
+            Ok(constants::MESSAGE_SIGNUP_SUCCESS.to_string())
+        } else {
+            Err(format!("User {} is already registered", &user.username))
+        }
+    }
 
     pub fn get_user(i: i32, conn: &Connection) -> QueryResult<User> {
         users.find(i).get_result::<User>(conn)

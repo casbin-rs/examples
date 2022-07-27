@@ -16,6 +16,7 @@ mod middleware;
 mod repository;
 mod route;
 mod constants;
+mod api;
 
 use crate::model::*;
 use crate::schema::*;
