@@ -1,0 +1,15 @@
+p, alice, /users/alice/todos, GET
+p, alice, /users/alice/todos, POST
+,,,
+p, bob, /users/bob/todos, GET
+p, bob, /users/bob/todos, POST
+,,,
+p, admin, /todos, GET
+p, admin, /users/:name/todos, GET
+p, user, /todos/:id, GET
+p, user, /todos/:id, PUT
+p, user, /todos/:id, DELETE
+,,,
+g, alice, admin
+g, alice, user
+g, bob, user

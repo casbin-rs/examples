@@ -1,42 +1,30 @@
 #[macro_use]
 extern crate diesel;
 
-mod auth;
-mod models;
-mod schema;
+use std::env;
+use std::sync::{Arc, Mutex};
 
-use crate::models::*;
-use crate::schema::*;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use dotenv::dotenv;
-use poem::web::{Data, Json};
-use poem::{
-    get, handler, listener::TcpListener, web::Path, EndpointExt, IntoResponse, Route,
-    Server,
-};
-use std::env;
-use std::ops::DerefMut;
-use std::sync::{Arc, Mutex};
+use poem::{get, listener::TcpListener, EndpointExt, Route, Server};
+
+use poem_casbin_auth::casbin::function_map::key_match2;
+use poem_casbin_auth::casbin::{CoreApi, DefaultModel, FileAdapter};
+use poem_casbin_auth::CasbinService;
+
+use crate::models::*;
+use crate::schema::*;
+
+mod apis;
+mod auth;
+mod models;
+mod schema;
 
 fn establish_connection() -> PgConnection {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     PgConnection::establish(&database_url)
         .expect(&format!("Error connecting to {}", database_url))
-}
-
-#[handler]
-fn hello(Path(name): Path<String>) -> String {
-    format!("hello: {}", name)
-}
-
-#[handler]
-fn get_users(mut conn: Data<&Arc<Mutex<PgConnection>>>) -> impl IntoResponse {
-    let results = users::table
-        .limit(5)
-        .load::<User>(conn.0.lock().unwrap().deref_mut())
-        .expect("Error loading posts");
-    Json(results)
 }
 
 #[tokio::main]
@@ -46,9 +34,25 @@ async fn main() -> Result<(), std::io::Error> {
         env::set_var("RUST_LOG", "poem=debug");
     }
     let connection = establish_connection();
+
+    let m = DefaultModel::from_file("rbac_with_pattern_model.conf")
+        .await
+        .unwrap();
+    let a = FileAdapter::new("rbac_with_pattern_policy.csv");
+
+    let casbin_middleware = CasbinService::new(m, a).await.unwrap();
+
+    casbin_middleware
+        .write()
+        .await
+        .get_role_manager()
+        .write()
+        .matching_fn(Some(key_match2), None);
+
     let app = Route::new()
-        .at("/hello/:name", get(hello))
-        .at("/users", get(get_users))
+        .at("/hello/:name", get(apis::hello))
+        .at("/users", get(apis::get_users))
+        .with(casbin_middleware)
         .with(auth::BasicAuth)
         .data(Arc::new(Mutex::new(connection)));
     Server::new(TcpListener::bind("127.0.0.1:3000"))
