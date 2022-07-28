@@ -50,8 +50,20 @@ async fn main() -> Result<(), std::io::Error> {
         .matching_fn(Some(key_match2), None);
 
     let app = Route::new()
-        .at("/hello/:name", get(apis::hello))
+        .at("/hello", get(apis::hello))
         .at("/users", get(apis::get_users))
+        .at("/todos", get(apis::get_todos))
+        .at(
+            "/todo/:id",
+            get(apis::get_todo)
+                .put(apis::update_todo)
+                .delete(apis::delete_todo),
+        )
+        .at(
+            "/user/todos",
+            get(apis::get_self_todos).post(apis::create_todo),
+        )
+        .at("/user/:name/todos", get(apis::get_user_todos))
         .with(casbin_middleware)
         .with(auth::BasicAuth)
         .data(Arc::new(Mutex::new(connection)));

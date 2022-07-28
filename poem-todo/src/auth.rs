@@ -8,6 +8,7 @@ use poem::{
     },
     Endpoint, Error, Middleware, Request, Result,
 };
+use poem_casbin_auth::CasbinVals;
 use std::ops::DerefMut;
 use std::sync::{Arc, Mutex};
 
@@ -23,12 +24,6 @@ impl<E: Endpoint> Middleware<E> for BasicAuth {
 
 pub struct BasicAuthEndpoint<E> {
     ep: E,
-}
-
-#[derive(Clone)]
-pub struct CasbinVals {
-    pub subject: String,
-    pub domain: Option<String>,
 }
 
 #[poem::async_trait]
@@ -49,10 +44,11 @@ impl<E: Endpoint> Endpoint for BasicAuthEndpoint<E> {
             let user = res.unwrap();
             return if let Some(user) = user {
                 let vals = CasbinVals {
-                    subject: String::from(user.name),
+                    subject: String::from(&user.name),
                     domain: None,
                 };
                 req.extensions_mut().insert(vals);
+                req.extensions_mut().insert(user);
                 self.ep.call(req).await
             } else {
                 Err(Error::from_status(StatusCode::UNAUTHORIZED))

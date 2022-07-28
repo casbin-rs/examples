@@ -14,7 +14,14 @@ pub struct User {
 }
 
 #[derive(
-    Identifiable, Queryable, Associations, Serialize, Deserialize, PartialEq, Debug,
+    Identifiable,
+    Queryable,
+    Associations,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Debug,
+    Default,
 )]
 #[diesel(belongs_to(User))]
 #[diesel(table_name = todos)]
@@ -38,12 +45,33 @@ impl Todo {
         todos::table.order(todos::id.asc()).load::<Todo>(conn)
     }
 
-    pub fn find_by_id(i: i32, conn: &mut PgConnection) -> QueryResult<Todo> {
-        todos::table.find(i).get_result::<Todo>(conn)
+    pub fn find_by_id(
+        i: i32,
+        user: &User,
+        conn: &mut PgConnection,
+    ) -> QueryResult<Todo> {
+        if user.is_admin {
+            todos::table.find(i).get_result::<Todo>(conn)
+        } else {
+            // user can only access his todos
+            todos::table
+                .find(i)
+                .filter(todos::user_id.eq(user.id))
+                .get_result::<Todo>(conn)
+        }
     }
 
-    pub fn insert(new_todo: NewTodo, conn: &mut PgConnection) -> QueryResult<usize> {
-        diesel::insert_into(todos).values(&new_todo).execute(conn)
+    pub fn insert(new_todo: NewTodo, conn: &mut PgConnection) -> QueryResult<Todo> {
+        let todo_id = diesel::insert_into(todos)
+            .values(&new_todo)
+            .returning(todos::id)
+            .execute(conn);
+        if todo_id.is_err() {
+            return Err(todo_id.unwrap_err());
+        }
+        todos::table
+            .find(todo_id.unwrap() as i32)
+            .get_result::<Todo>(conn)
     }
 
     pub fn update(
@@ -68,6 +96,16 @@ impl User {
 
     pub fn find_by_id(i: i32, conn: &mut PgConnection) -> QueryResult<User> {
         users::table.find(i).get_result::<User>(conn)
+    }
+
+    pub fn find_by_name(
+        name: String,
+        conn: &mut PgConnection,
+    ) -> Result<Option<User>, Error> {
+        users::table
+            .filter(users::name.eq(name))
+            .first::<User>(conn)
+            .optional()
     }
 
     pub fn find_user(

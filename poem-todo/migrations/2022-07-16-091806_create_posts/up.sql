@@ -15,6 +15,6 @@ CREATE TABLE users
 );
 
 INSERT INTO users
-VALUES (0, 'Alice', '123', 't');
+VALUES (0, 'alice', '123', 't');
 INSERT INTO users
-VALUES (1, 'Bob', '123', 'f');
+VALUES (1, 'bob', '123', 'f');
