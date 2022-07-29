@@ -10,8 +10,7 @@ use crate::{
 
 use axum::extract::Extension;
 use axum::http::StatusCode;
-use axum_casbin_auth::casbin::{CachedEnforcer};
-use axum_casbin_auth::CasbinVals;
+use axum_casbin_auth::casbin::{CachedEnforcer, MgmtApi};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]

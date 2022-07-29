@@ -24,7 +24,7 @@ use std::{
 use tower::{Layer, Service};
 
 #[derive(Clone)]
-struct AuthLayer;
+pub struct AuthLayer;
 
 impl<S> Layer<S> for AuthLayer {
     type Service = AuthMiddleware<S>;
@@ -35,7 +35,7 @@ impl<S> Layer<S> for AuthLayer {
 }
 
 #[derive(Clone)]
-struct AuthMiddleware<S> {
+pub struct AuthMiddleware<S> {
     inner: S,
 }
 

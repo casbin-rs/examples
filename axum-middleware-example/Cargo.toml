@@ -10,6 +10,7 @@ axum = "0.5.13"
 futures = "0.3.5"
 failure = "0.1.8"
 serde = "1.0.116"
+async-std = { version = "1.10.0", default-features = false, optional = true }
 serde_derive = "1.0.116"
 serde_json = "1.0.57"
 derive_more = "0.99.10"
@@ -29,4 +30,5 @@ diesel-adapter = "0.9.0"
 bytes = "1.1.0"
 uuid = {version = "1.1.2", features = ["v4"] }
 chrono = { version = "0.4.18", features = ["serde"] }
+tokio = { version = "1.17.0", features = [ "full" ] }
 axum-casbin-auth =  {git = "https://github.com/casbin-rs/axum-casbin-auth"}

@@ -1,0 +1,6 @@
+p, doctor, report, read
+p, doctor, report, write
+p, patient, report, read
+
+g, john, doctor
+g, sam, patient

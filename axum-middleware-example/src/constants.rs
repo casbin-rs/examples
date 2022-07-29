@@ -10,6 +10,8 @@ pub const MESSAGE_INTERNAL_SERVER_ERROR: &str = "Internal Server Error";
 pub const MESSAGE_SIGNIN_FAILED: &str = "Wrong email or password, please try again";
 pub const MESSAGE_SIGNIN_SUCCESS: &str = "Signin successfully";
 pub const MESSAGE_SIGNUP_SUCCESS: &str = "Signup successfully";
+pub const MESSAGE_NEW_USER_ADD_PERMISSION_ERROR: &str =
+    "Can not add new user when adding new permissions";
 
 // BAD REQUEST
 pub const MESSAGE_TOKEN_MISSING: &str = "Token is missing";

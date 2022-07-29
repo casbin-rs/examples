@@ -5,7 +5,6 @@ use crate::{
     constants
 };
 
-use chrono::Utc;
 use diesel::prelude::*;
 use diesel::QueryDsl;
 use serde::{Deserialize, Serialize};

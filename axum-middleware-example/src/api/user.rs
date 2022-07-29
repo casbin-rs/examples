@@ -6,12 +6,9 @@ use crate::{
         response::ResponseBody,
         user::{LoginForm, NewUser},
     },
-    service::user::{self, TokenBodyResponse},
+    service::user::{self},
 };
-// use actix::Addr;
-// use actix_casbin::CasbinActor;
-// use actix_casbin_auth::casbin::CachedEnforcer;
-// use actix_web::{web, HttpRequest, HttpResponse, Result};
+
 use axum::{
     extract::{Extension, Path},
     http::StatusCode,
@@ -19,10 +16,6 @@ use axum::{
     Json,
 };
 use axum_casbin_auth::casbin::CachedEnforcer;
-// use serde_json::json;
-// use http::{StatusCode, Response};
-use chrono::{NaiveDateTime, Utc};
-use tower::balance::pool;
 
 // IMPLEMENT INTORESPONSE FOR SERVICE ERROR AND UPDATE ALL ERRORS OR MATCH THE ERROR WITH SERVICE ERROR (STATUSCODE, CONTANTSMSG).INTO_RESPONSE()
 // POST(api/auth/signin)
@@ -37,21 +30,30 @@ pub async fn signin(
             token_res,
         ))
         .into_response(),
-        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, constants::MESSAGE_INTERNAL_SERVER_ERROR.to_string()).into_response(),
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            constants::MESSAGE_INTERNAL_SERVER_ERROR.to_string(),
+        )
+            .into_response(),
     }
 }
 
 // POST(api/auth/register)
 pub async fn register() {}
 
+
 // DELETE(api/admin/{:id})
 pub async fn delete_user() {}
 
 // GET(api/user/{:id})
-pub async fn get_user(Path(id): Path<String>, pool: Extension<Pool>) -> Response{
-    match user::get_user(id.parse::<i32>().unwrap(), &pool){
-        Ok(user) => {Json(ResponseBody::new(constants::MESSAGE_OK, user)).into_response()}
-        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, constants::MESSAGE_CAN_NOT_FETCH_DATA.to_string()).into_response()
+pub async fn get_user(Path(id): Path<String>, pool: Extension<Pool>) -> Response {
+    match user::get_user(id.parse::<i32>().unwrap(), &pool) {
+        Ok(user) => Json(ResponseBody::new(constants::MESSAGE_OK, user)).into_response(),
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            constants::MESSAGE_CAN_NOT_FETCH_DATA.to_string(),
+        )
+            .into_response(),
     }
 }
 
@@ -61,7 +63,11 @@ pub async fn get_all_user(pool: Extension<Pool>) -> Response {
         Ok(users) => {
             Json(ResponseBody::new(constants::MESSAGE_OK, users)).into_response()
         }
-        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, constants::MESSAGE_CAN_NOT_FETCH_DATA.to_string()).into_response(),
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            constants::MESSAGE_CAN_NOT_FETCH_DATA.to_string(),
+        )
+            .into_response(),
     }
 }
 
