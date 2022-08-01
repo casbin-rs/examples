@@ -4,11 +4,12 @@ use crate::{
     model::db::Pool,
     model::{
         response::ResponseBody,
-        user::{LoginForm, NewUser},
+        user::{AddUser, LoginForm},
     },
     service::user::{self},
 };
 
+use async_std::sync::Arc;
 use axum::{
     extract::{Extension, Path},
     http::StatusCode,
@@ -16,6 +17,8 @@ use axum::{
     Json,
 };
 use axum_casbin_auth::casbin::CachedEnforcer;
+use axum_macros::debug_handler;
+use tokio::sync::RwLock;
 
 // IMPLEMENT INTORESPONSE FOR SERVICE ERROR AND UPDATE ALL ERRORS OR MATCH THE ERROR WITH SERVICE ERROR (STATUSCODE, CONTANTSMSG).INTO_RESPONSE()
 // POST(api/auth/signin)
@@ -39,11 +42,41 @@ pub async fn signin(
 }
 
 // POST(api/auth/register)
-pub async fn register() {}
-
+// try to update the response, try to add result in all, if failed, then ask on discussion and search at night
+#[debug_handler]
+pub async fn register(
+    Json(reg_form): Json<AddUser>,
+    pool: Extension<Pool>,
+    Extension(enforcer): Extension<Arc<RwLock<CachedEnforcer>>>,
+) -> Response {
+    let user = reg_form;
+    match user::register(user, &pool, enforcer).await {
+        Ok(message) => {
+            Json(ResponseBody::new(&message, constants::EMPTY)).into_response()
+        }
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            constants::MESSAGE_NEW_USER_ADD_PERMISSION_ERROR.to_string(),
+        )
+            .into_response(),
+    }
+}
 
 // DELETE(api/admin/{:id})
-pub async fn delete_user() {}
+// IT DOESNT DO ANY USER VALIDATION
+#[debug_handler]
+pub async fn delete_user(Path(id): Path<String>, pool: Extension<Pool>) -> Response {
+    match user::delete_user(id.parse::<i32>().unwrap(), &pool) {
+        Ok(delete) => {
+            Json(ResponseBody::new(constants::MESSAGE_OK, delete)).into_response()
+        }
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            constants::MESSAGE_CAN_NOT_FETCH_DATA.to_string(),
+        )
+            .into_response(),
+    }
+}
 
 // GET(api/user/{:id})
 pub async fn get_user(Path(id): Path<String>, pool: Extension<Pool>) -> Response {
@@ -72,4 +105,20 @@ pub async fn get_all_user(pool: Extension<Pool>) -> Response {
 }
 
 // PUT(api/admin/{:id})
-pub async fn update_user() {}
+// CAN UPDATE ROLE
+pub async fn update_user(
+    Path(id): Path<String>,
+    Json(update_form): Json<AddUser>,
+    pool: Extension<Pool>,
+) -> Response {
+    match user::update_user(id.parse::<i32>().unwrap(), update_form, &pool) {
+        Ok(message) => {
+            Json(ResponseBody::new(&message, constants::EMPTY)).into_response()
+        }
+        Err(_) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            constants::MESSAGE_UPDATE_USER_ERROR.to_string(),
+        )
+            .into_response(),
+    }
+}

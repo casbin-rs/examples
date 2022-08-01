@@ -1,14 +1,15 @@
 use crate::{
+    constants,
     model::{db::Connection, user_token::UserToken},
     schema::users::{self, dsl::*},
     utils::bcrypt::{compare_password, hash_password},
-    constants
 };
 
 use diesel::prelude::*;
 use diesel::QueryDsl;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use axum_macros::FromRequest;
 
 #[derive(Debug, Serialize, Deserialize, Queryable)]
 // #[derive(Identifiable, Queryable, PartialEq, Debug)]
@@ -22,15 +23,15 @@ pub struct User {
     pub login_session: String,
 }
 
-#[derive(Insertable, Serialize, Deserialize, AsChangeset, Clone)]
+#[derive(Insertable, Serialize, Deserialize, AsChangeset, Clone, FromRequest)]
 #[table_name = "users"]
-pub struct NewUser {
+pub struct AddUser {
     pub username: String,
     pub email: String,
     pub password: String,
     #[serde(default = "default_role")]
     pub role: String,
-    pub login_session: String
+    pub login_session: String,
 }
 
 fn default_role() -> String {
@@ -53,10 +54,10 @@ pub struct LoginInfo {
 }
 
 impl User {
-    pub fn register(user: NewUser, conn: &Connection) -> Result<String, String> {
+    pub fn register(user: AddUser, conn: &Connection) -> Result<String, String> {
         if Self::get_user_by_email(&user.email, conn).is_err() {
             let hashed_pwd = hash_password(&user.password).unwrap();
-            let user_upd = NewUser {
+            let user_upd = AddUser {
                 password: hashed_pwd,
                 ..user
             };
@@ -64,10 +65,25 @@ impl User {
                 .values(&user_upd)
                 .execute(conn)
                 .map_err(|e| e.to_string())?;
-            
+
             Ok(constants::MESSAGE_SIGNUP_SUCCESS.to_string())
         } else {
             Err(format!("User {} is already registered", &user.username))
+        }
+    }
+
+    pub fn update_user(i: i32, user_data: AddUser, conn: &Connection) -> Result<String, String> {
+        if Self::get_user_by_email(&user_data.email, conn).is_err() {
+            Err(format!("User is not present"))
+        } else {
+            let hashed_pwd = hash_password(&user_data.password).unwrap();
+            let user_update = AddUser {
+                password: hashed_pwd,
+                ..user_data
+            };
+            diesel::update(users.find(i)).set(&user_update).execute(conn).map_err(|e| e.to_string())?;
+
+            Ok(constants::MESSAGE_UPDATE_USER_SUCCESS.to_string())
         }
     }
 
@@ -78,7 +94,7 @@ impl User {
     pub fn get_all_user(conn: &Connection) -> QueryResult<Vec<User>> {
         users.order(id.asc()).load::<User>(conn)
     }
-    
+
     pub fn signin(login: LoginForm, conn: &Connection) -> Option<LoginInfo> {
         if let Ok(user_to_verify) = users
             .filter(email.eq(&login.email))
@@ -104,9 +120,11 @@ impl User {
         None
     }
 
-    pub fn update_user() {}
+    
 
-    pub fn delete_user() {}
+    pub fn delete_user(delete_id: i32, conn: &Connection) -> QueryResult<usize> {
+        diesel::delete(users.filter(users::id.eq(delete_id))).execute(conn)
+    }
 
     pub fn update_login_session_to_db(
         eml: &str,

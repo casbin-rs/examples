@@ -1,4 +1,8 @@
-use crate::{constants, model::{db::Pool, response::ResponseBody}, utils::token_utils};
+use crate::{
+    constants,
+    model::{db::Pool, response::ResponseBody},
+    utils::token_utils,
+};
 
 use axum::{
     body::{self, BoxBody},
@@ -7,15 +11,14 @@ use axum::{
         header::{HeaderName, HeaderValue},
         Method,
     },
-    Json,
-    response::{Response, IntoResponse},
-    BoxError
+    response::{IntoResponse, Response},
+    BoxError, Json,
 };
 use axum_casbin_auth::CasbinVals;
 use bytes::Bytes;
 use futures::future::BoxFuture;
 use http::{self, Request};
-use http_body::{Body as HttpBody};
+use http_body::Body as HttpBody;
 use std::{
     boxed::Box,
     convert::Infallible,
@@ -103,7 +106,8 @@ where
                                         .is_ok()
                                     {
                                         info!("Valid token");
-                                        authenticate_username = token_data.claims.user_name;
+                                        authenticate_username =
+                                            token_data.claims.user_name;
                                         authenticate_pass = true;
                                     } else {
                                         error!("Invalid token");
@@ -122,15 +126,15 @@ where
                 domain: None,
             };
             req.extensions_mut().insert(vals);
-            Box::pin(async move { 
-                Ok(inner.call(req).await?.map(body::boxed))
-             })
-        } else{
-            Box::pin(async move{
-                Ok(Json(ResponseBody::new(constants::MESSAGE_TOKEN_MISSING, constants::EMPTY)).into_response())
+            Box::pin(async move { Ok(inner.call(req).await?.map(body::boxed)) })
+        } else {
+            Box::pin(async move {
+                Ok(Json(ResponseBody::new(
+                    constants::MESSAGE_INVALID_TOKEN,
+                    constants::EMPTY,
+                ))
+                .into_response())
             })
-            
         }
-
     }
 }

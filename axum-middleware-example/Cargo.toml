@@ -7,10 +7,11 @@ edition = "2021"
 
 [dependencies]
 axum = "0.5.13"
+axum-macros = "0.2.3"
 futures = "0.3.5"
 failure = "0.1.8"
 serde = "1.0.116"
-async-std = { version = "1.10.0", default-features = false, optional = true }
+async-std = "1.10.0"
 serde_derive = "1.0.116"
 serde_json = "1.0.57"
 derive_more = "0.99.10"

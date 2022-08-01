@@ -91,6 +91,7 @@ async fn main() -> Result<()> {
     
     let app = Router::new()
     .layer(Extension(pool.clone()))
+    .layer(Extension(clone_enforcer))
     .route("/api/auth/register", post(user_api::register))
     .route("/api/auth/signin", post(user_api::signin))
     .route("/api/users", get(user_api::get_all_user))
