@@ -37,7 +37,7 @@ pub async fn register(
         match enforcer
             .write()
             .await
-            .add_named_grouping_policy(&"g", g_policies)
+            .add_named_grouping_policy("g", g_policies)
             .await
         {
             Ok(_) => info!("Preset policies(p) add successfully"),

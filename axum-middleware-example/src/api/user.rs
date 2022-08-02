@@ -42,7 +42,6 @@ pub async fn signin(
 }
 
 // POST(api/auth/register)
-// try to update the response, try to add result in all, if failed, then ask on discussion and search at night
 #[debug_handler]
 pub async fn register(
     Json(reg_form): Json<AddUser>,
@@ -105,7 +104,6 @@ pub async fn get_all_user(pool: Extension<Pool>) -> Response {
 }
 
 // PUT(api/admin/{:id})
-// CAN UPDATE ROLE
 pub async fn update_user(
     Path(id): Path<String>,
     Json(update_form): Json<AddUser>,

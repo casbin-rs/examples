@@ -1,3 +1,5 @@
+#![allow(clippy::extra_unused_lifetimes)]
+
 use crate::{
     config::db::Connection,
     constants,

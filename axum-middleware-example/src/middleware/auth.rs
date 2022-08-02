@@ -120,7 +120,6 @@ where
             }
         }
         if authenticate_pass {
-            // UNDERSTAND POLICY GROUPING AND UPDATE CASBINBALS HERE
             let vals = CasbinVals {
                 subject: authenticate_username,
                 domain: None,

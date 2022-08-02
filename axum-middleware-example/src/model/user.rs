@@ -1,3 +1,5 @@
+#![allow(clippy::extra_unused_lifetimes)]
+
 use crate::{
     constants,
     model::{db::Connection, user_token::UserToken},
@@ -5,11 +7,11 @@ use crate::{
     utils::bcrypt::{compare_password, hash_password},
 };
 
+use axum_macros::FromRequest;
 use diesel::prelude::*;
 use diesel::QueryDsl;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use axum_macros::FromRequest;
 
 #[derive(Debug, Serialize, Deserialize, Queryable)]
 // #[derive(Identifiable, Queryable, PartialEq, Debug)]
@@ -72,16 +74,23 @@ impl User {
         }
     }
 
-    pub fn update_user(i: i32, user_data: AddUser, conn: &Connection) -> Result<String, String> {
+    pub fn update_user(
+        i: i32,
+        user_data: AddUser,
+        conn: &Connection,
+    ) -> Result<String, String> {
         if Self::get_user_by_email(&user_data.email, conn).is_err() {
-            Err(format!("User is not present"))
+            Err("User is not present".to_string())
         } else {
             let hashed_pwd = hash_password(&user_data.password).unwrap();
             let user_update = AddUser {
                 password: hashed_pwd,
                 ..user_data
             };
-            diesel::update(users.find(i)).set(&user_update).execute(conn).map_err(|e| e.to_string())?;
+            diesel::update(users.find(i))
+                .set(&user_update)
+                .execute(conn)
+                .map_err(|e| e.to_string())?;
 
             Ok(constants::MESSAGE_UPDATE_USER_SUCCESS.to_string())
         }
@@ -119,8 +128,6 @@ impl User {
         }
         None
     }
-
-    
 
     pub fn delete_user(delete_id: i32, conn: &Connection) -> QueryResult<usize> {
         diesel::delete(users.filter(users::id.eq(delete_id))).execute(conn)

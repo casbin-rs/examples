@@ -23,8 +23,7 @@ pub fn walk_csv<P: AsRef<Path>>(dir: P) -> Vec<PathBuf> {
 pub fn load_csv<P: AsRef<Path>>(paths: Vec<P>) -> Vec<Vec<String>> {
     paths
         .into_iter()
-        .map(load_records)
-        .flatten()
+        .flat_map(load_records)
         .filter_map(|r| r.deserialize::<Vec<String>>(None).ok())
         .collect::<Vec<Vec<String>>>()
 }

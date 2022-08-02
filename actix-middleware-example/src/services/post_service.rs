@@ -39,7 +39,7 @@ pub fn find_all(
         }
     };
     let username = &vals.subject;
-    let user = User::find_user_by_username(&username, &pool.get().unwrap())
+    let user = User::find_user_by_username(username, &pool.get().unwrap())
         .map_err(|_| make_error())?;
     let mut is_admin = false;
     if user.role == 0 || user.role == 1 {
@@ -76,7 +76,7 @@ pub fn find_by_id(
         }
     };
     let username = &vals.subject;
-    let user = User::find_user_by_username(&username, &pool.get().unwrap())
+    let user = User::find_user_by_username(username, &pool.get().unwrap())
         .map_err(|_| make_error())?;
     let mut is_admin = false;
     if user.role == 0 || user.role == 1 {
@@ -134,7 +134,7 @@ pub fn delete(
         }
     };
     let username = &vals.subject;
-    let user = User::find_user_by_username(&username, &pool.get().unwrap())
+    let user = User::find_user_by_username(username, &pool.get().unwrap())
         .map_err(|_| make_error())?;
     if user.role == 0 || user.role == 1 {
         match Post::find_by_id(true, id, &pool.get().unwrap()) {

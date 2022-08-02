@@ -10,7 +10,6 @@ embed_migrations!();
 pub type Connection = PgConnection;
 pub type Pool = r2d2::Pool<ConnectionManager<Connection>>;
 
-// THIS HAS TO BE CALLED TO SETUP THE DATABASE
 pub fn migrate_and_config_db(url: &str, pool_size: u32) -> Pool {
     info!("Migrating and configurating database...");
     let manager = ConnectionManager::<Connection>::new(url);

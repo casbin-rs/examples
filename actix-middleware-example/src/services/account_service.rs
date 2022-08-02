@@ -98,7 +98,7 @@ pub fn logout(req: HttpRequest, pool: &web::Data<Pool>) -> Result<(), ServiceErr
         }
     };
     let username = &vals.subject;
-    let user = User::find_user_by_username(&username, &pool.get().unwrap())
+    let user = User::find_user_by_username(username, &pool.get().unwrap())
         .map_err(|_| make_error())?;
     User::logout(user.id, &pool.get().unwrap());
     Ok(())
@@ -147,7 +147,7 @@ pub fn delete_admin(
         }
     };
     let username = &vals.subject;
-    let user = User::find_user_by_username(&username, &pool.get().unwrap())
+    let user = User::find_user_by_username(username, &pool.get().unwrap())
         .map_err(|_| make_error())?;
     let delete_user_role = user.role;
 
@@ -201,7 +201,7 @@ pub fn delete_self(
         }
     };
     let username = &vals.subject;
-    let user = User::find_user_by_username(&username, &pool.get().unwrap())
+    let user = User::find_user_by_username(username, &pool.get().unwrap())
         .map_err(|_| make_error())?;
 
     if user.role == 0 {

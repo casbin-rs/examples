@@ -1,3 +1,4 @@
+#![allow(clippy::extra_unused_lifetimes)]
 use crate::{
     config::db::Connection,
     schema::posts::{self, dsl::*},

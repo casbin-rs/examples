@@ -99,8 +99,7 @@ async fn main() -> Result<()> {
     .route("/api/admin/:id", put(user_api::update_user))
     .route("/api/admin/:id", delete(user_api::delete_user))
     .layer(casbin_middleware.clone())
-    .layer(middleware::middleware::AuthLayer);
-    // .with(pool.clone());
+    .layer(middleware::auth::AuthLayer);
 
     axum::Server::bind(&app_url.parse().unwrap())
         .serve(app.into_make_service())
