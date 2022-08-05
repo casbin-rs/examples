@@ -4,5 +4,7 @@ members = [
     "actix-pgsql-simple",
     "ntex-fileadapter-acl",
     "actix-middleware-example",
-    "axum-middleware-example"
+    "axum-middleware-example",
+    "poem-todo"
+
 ]
