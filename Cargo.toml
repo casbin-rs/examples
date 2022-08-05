@@ -4,4 +4,5 @@ members = [
     "actix-pgsql-simple",
     "ntex-fileadapter-acl",
     "actix-middleware-example",
+    "poem-todo",
 ]
