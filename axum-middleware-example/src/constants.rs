@@ -11,9 +11,7 @@ pub const MESSAGE_SIGNUP_SUCCESS: &str = "Signup successfully";
 pub const MESSAGE_UPDATE_USER_SUCCESS: &str = "User updated successfully";
 pub const MESSAGE_NEW_USER_ADD_PERMISSION_ERROR: &str =
     "Can not add new user when adding new permissions, maybe user is already present";
-    pub const MESSAGE_UPDATE_USER_ERROR: &str =
-    "Can not update user";
-
+pub const MESSAGE_UPDATE_USER_ERROR: &str = "Can not update user";
 
 // HEADERS
 pub const AUTHORIZATION: &str = "Authorization";

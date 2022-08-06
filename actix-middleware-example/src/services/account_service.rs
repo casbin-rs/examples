@@ -8,9 +8,9 @@ use crate::{
 };
 use actix::Addr;
 use actix_casbin::{CasbinActor, CasbinCmd, CasbinResult};
-use actix_casbin_auth::casbin::{CachedEnforcer};
+use actix_casbin_auth::casbin::CachedEnforcer;
 use actix_casbin_auth::CasbinVals;
-use actix_web::{http::StatusCode, web, HttpRequest, HttpMessage};
+use actix_web::{http::StatusCode, web, HttpMessage, HttpRequest};
 
 #[derive(Serialize, Deserialize)]
 pub struct TokenBodyResponse {

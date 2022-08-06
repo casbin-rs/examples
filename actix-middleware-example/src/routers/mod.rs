@@ -14,7 +14,9 @@ pub fn routes(cfg: &mut web::ServiceConfig) {
             )
             .service(
                 web::scope("/user")
-                    .service(web::resource("/logout").route(web::post().to(user::logout)))
+                    .service(
+                        web::resource("/logout").route(web::post().to(user::logout)),
+                    )
                     .service(
                         web::resource("").route(web::delete().to(user::delete_self)),
                     ),

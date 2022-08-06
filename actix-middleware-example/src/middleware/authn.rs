@@ -30,8 +30,8 @@ pub struct Authentication;
 
 impl<S, B> Transform<S, ServiceRequest> for Authentication
 where
-S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
-B: MessageBody,
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+    B: MessageBody,
 {
     type Response = ServiceResponse<EitherBody<B>>;
     type Error = Error;
@@ -123,14 +123,21 @@ where
                     domain: None,
                 };
                 req.extensions_mut().insert(vals);
-                Box::pin(async move { srv.call(req).await.map(|res| res.map_into_left_body()) })
+                Box::pin(async move {
+                    srv.call(req).await.map(|res| res.map_into_left_body())
+                })
             } else {
                 let vals = CasbinVals {
                     subject: authenticate_username,
                     domain: None,
                 };
                 req.extensions_mut().insert(vals);
-                Box::pin(async move { srv.clone().call(req).await.map(|res| res.map_into_left_body()) })
+                Box::pin(async move {
+                    srv.clone()
+                        .call(req)
+                        .await
+                        .map(|res| res.map_into_left_body())
+                })
             }
         } else {
             Box::pin(async move {

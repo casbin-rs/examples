@@ -17,7 +17,7 @@ pub fn hash_password(plain: &str) -> Result<String, ServiceError> {
     })
 }
 // VERIFY PASSWORD
-pub fn compare_password(plain: &str, hash: &str) -> Result<bool, ServiceError>{
+pub fn compare_password(plain: &str, hash: &str) -> Result<bool, ServiceError> {
     verify(plain, hash).map_err(|_| {
         ServiceError::new(
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -25,7 +25,3 @@ pub fn compare_password(plain: &str, hash: &str) -> Result<bool, ServiceError>{
         )
     })
 }
-
-
-
-

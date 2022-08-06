@@ -66,8 +66,9 @@ impl Todo {
             .values(&new_todo)
             .returning(todos::id)
             .execute(conn);
-        if todo_id.is_err() {
-            return Err(todo_id.unwrap_err());
+
+        if let Err(err) = todo_id {
+            return Err(err);
         }
         todos::table
             .find(todo_id.unwrap() as i32)

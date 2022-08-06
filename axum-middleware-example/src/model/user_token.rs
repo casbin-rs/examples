@@ -2,7 +2,7 @@ use crate::model::user::LoginInfo;
 
 use chrono::Utc;
 use jsonwebtoken::{EncodingKey, Header};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 static THREE_HOUR: i64 = 60 * 60 * 3;
 pub static KEY: [u8; 16] = *include_bytes!("../secret.key");
@@ -16,18 +16,18 @@ pub struct UserToken {
     // userID
     pub user_name: String,
     pub role: String,
-    pub login_session: String
+    pub login_session: String,
 }
 
 impl UserToken {
-    pub fn generate_token(login: LoginInfo) -> String{
+    pub fn generate_token(login: LoginInfo) -> String {
         let now = Utc::now().timestamp_nanos() / 1_000_000_000;
         let payload = UserToken {
             iat: now,
             exp: now + THREE_HOUR,
             user_name: login.username,
             role: login.role,
-            login_session:login.login_session
+            login_session: login.login_session,
         };
 
         jsonwebtoken::encode(
@@ -36,5 +36,5 @@ impl UserToken {
             &EncodingKey::from_secret(&KEY),
         )
         .unwrap()
-    }  
+    }
 }

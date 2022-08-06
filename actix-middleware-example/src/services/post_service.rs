@@ -6,7 +6,7 @@ use crate::{
     models::user::User,
 };
 use actix_casbin_auth::CasbinVals;
-use actix_web::{http::StatusCode, web, HttpRequest, HttpMessage};
+use actix_web::{http::StatusCode, web, HttpMessage, HttpRequest};
 
 pub fn find_all_public(pool: &web::Data<Pool>) -> Result<Vec<Post>, ServiceError> {
     match Post::find_all(false, &pool.get().unwrap()) {
