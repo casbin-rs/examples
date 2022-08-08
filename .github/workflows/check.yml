@@ -65,17 +65,11 @@ jobs:
     - name: "Checkout Repository"
       uses: actions/checkout@v1
 
-    - name: Generate test secret key_actix
+    - name: Generate test secret key
       shell: sh
       run: |
         mv src/secret.key.sample src/secret.key
       working-directory: actix-middleware-example
-    
-    - name: Generate test secret key_axum
-      shell: sh
-      run: |
-        mv src/secret.key.sample src/secret.key
-      working-directory: axum-middleware-example
 
     - name: "Use the latest Rust stable with clippy"
       uses: actions-rs/toolchain@v1

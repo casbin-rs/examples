@@ -19,9 +19,9 @@ use actix_casbin::casbin::{
 use actix_casbin::CasbinActor;
 use actix_casbin_auth::CasbinService;
 use actix_cors::Cors;
-use actix_web::middleware::normalize::TrailingSlash;
 use actix_web::middleware::Logger;
 use actix_web::middleware::NormalizePath;
+use actix_web::middleware::TrailingSlash;
 use actix_web::{App, HttpServer};
 use diesel_adapter::DieselAdapter;
 use std::env;
